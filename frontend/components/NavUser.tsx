@@ -156,7 +156,7 @@ export const NavUser = ({ ssrUser }: { ssrUser: CurrentUser | null }) => {
                 SSR · getClient
               </p>
               <Row label="me.id" value={ssrUser?.id ?? "—"} />
-              <Row label="me.profile.guid" value={ssrUser?.profile?.guid ?? "—"} />
+              <Row label="me.profile.displayName" value={ssrUser?.profile?.displayName ?? "—"} />
               <Row label="me.profile.displayName" value={ssrUser?.profile?.displayName ?? "—"} />
             </section>
 
@@ -168,7 +168,7 @@ export const NavUser = ({ ssrUser }: { ssrUser: CurrentUser | null }) => {
                 {meLoading && <span className="font-normal normal-case">loading…</span>}
               </p>
               <Row label="me.id" value={meData?.me?.id ?? "—"} />
-              <Row label="me.profile.guid" value={meData?.me?.profile?.guid ?? "—"} />
+              <Row label="me.profile.displayName" value={meData?.me?.profile?.displayName ?? "—"} />
               <Row label="me.profile.displayName" value={meData?.me?.profile?.displayName ?? "—"} />
             </section>
           </div>

@@ -7,7 +7,6 @@ export const GET_ME = gql`
       email
       username
       profile {
-        guid
         displayName
       }
     }
