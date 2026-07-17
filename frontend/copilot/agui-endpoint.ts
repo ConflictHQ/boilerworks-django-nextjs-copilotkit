@@ -21,7 +21,12 @@
 export function getCopilotBackendUrl(): string {
   const override = process.env.COPILOT_AGUI_URL?.trim();
   if (override) return override;
-  const apiRoot = (process.env.NEXT_PUBLIC_API_ROOT ?? "").trim().replace(/\/+$/, "");
+  // Server-side route: prefer the in-network backend URL (docker-compose ui
+  // container can't reach the backend via localhost) — same precedence as the
+  // RSC Apollo client.
+  const apiRoot = (process.env.API_ROOT_INTERNAL ?? process.env.NEXT_PUBLIC_API_ROOT ?? "")
+    .trim()
+    .replace(/\/+$/, "");
   if (!apiRoot) {
     throw new Error(
       "Copilot backend URL is not configured. Set NEXT_PUBLIC_API_ROOT to the Django " +

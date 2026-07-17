@@ -252,6 +252,9 @@ services:
         required: false
     environment:
       - NEXT_PUBLIC_API_ROOT=http://localhost:8000
+      # Server-side (SSR / API routes) fetches run inside this container where
+      # localhost is the container itself — reach the backend by service name.
+      - API_ROOT_INTERNAL=http://boilerworks-local:8000
     depends_on:
       - boilerworks-local
 
