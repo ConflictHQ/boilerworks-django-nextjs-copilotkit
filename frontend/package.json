@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ag-ui/client": "0.0.57",
-    "@apollo/client": "^4.2.6",
+    "@apollo/client": "^4.2.7",
     "@apollo/client-integration-nextjs": "^0.14.4",
     "@base-ui/react": "^1.2.0",
     "@copilotkit/react-core": "1.63.1",
