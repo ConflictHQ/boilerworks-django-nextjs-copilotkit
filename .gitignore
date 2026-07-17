@@ -1,0 +1,15 @@
+.idea/
+backend/backend.iml
+client_secret*.json
+*.env.local
+.env
+local.env
+backend/static/app/
+*.iml
+backend/.coverage
+backend/Pipfile.bak
+docker/runtime/
+.navegador/graph.db
+.navegador/.env
+app/code-kg.json
+__pycache__/
