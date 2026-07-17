@@ -54,12 +54,19 @@ SYSTEM_PROMPT = (
     "- Every tool enforces the user's permissions. If a tool result has "
     "status 'permission_denied', tell the user they lack the required "
     'permission and do not retry that action.\n'
-    '- Executing a workflow transition is irreversible. Always call '
-    'execute_workflow_transition first WITHOUT confirmed to obtain the '
-    'confirmation summary, relay it to the user, and only call again with '
-    'confirmed=true after the user explicitly approves.\n'
     '- Refer to forms by their slug and to workflow objects by the reference '
-    'ids returned by the read tools. Never ask users for internal numeric ids.'
+    'ids returned by the read tools. Never ask users for internal numeric ids '
+    'and never pass a bare number as a reference id.\n'
+    '- Executing a workflow transition is irreversible and needs explicit human '
+    'approval. First call execute_workflow_transition WITHOUT confirmed; it '
+    "returns a result with status 'confirmation_required'. On that result, call "
+    'the frontend tool confirm_workflow_transition, passing through instance_ref, '
+    'workflow_name, from_state_label, to_state_label and label from the payload. '
+    'That tool returns {"approved": true} or {"approved": false} from the human. '
+    'Only if approved is true, call execute_workflow_transition again with '
+    'confirmed=true. If approved is false, do not execute the transition and '
+    'acknowledge the decision. Never pass confirmed=true without an approved=true '
+    'response from confirm_workflow_transition.'
 )
 
 
@@ -86,11 +93,37 @@ def _project_transitions(transitions: list[dict]) -> list[dict[str, Any]]:
     ]
 
 
-def _resolve_instance(instance_ref: str) -> Optional[WorkflowInstance]:
-    pk = GlobalIDUtils.get_pk_flexible(instance_ref, expected_type='WorkflowInstance')
-    if not pk:
-        return None
-    return WorkflowInstance.objects.filter(pk=pk).first()
+def _decode_ref(ref: str, expected_type: Optional[str] = None) -> tuple[Optional[str], Optional[dict[str, Any]]]:
+    """Strictly resolve an external reference id to a primary key.
+
+    Copilot refs are external-only. A bare integer is rejected (accepting raw
+    PKs would leak the key space and invite enumeration) and an undecodable or
+    wrong-type ref is reported as a tool result rather than raising — a raised
+    exception would abort the whole agent run. Returns ``(pk, None)`` on success
+    or ``(None, error_result)`` for the caller to return verbatim.
+    """
+    if not ref:
+        return None, {'status': 'not_found', 'message': 'No reference id was provided.'}
+    if isinstance(ref, int) or (isinstance(ref, str) and ref.isdigit()):
+        return None, {'status': 'error', 'message': 'Use the reference ids returned by the list tools.'}
+    try:
+        pk = GlobalIDUtils.get_pk(ref, expected_type=expected_type, raise_on_mismatch=False)
+    except ValueError:
+        pk = None
+    if not pk or not str(pk).isdigit():
+        return None, {'status': 'not_found', 'message': 'No record matches that reference id.'}
+    return pk, None
+
+
+def _resolve_instance(instance_ref: str) -> tuple[Optional[WorkflowInstance], Optional[dict[str, Any]]]:
+    """Resolve a workflow-instance ref to the instance, or a tool error result."""
+    pk, error = _decode_ref(instance_ref, expected_type='WorkflowInstance')
+    if error:
+        return None, error
+    inst = WorkflowInstance.objects.select_related('workflow').filter(pk=pk).first()
+    if not inst:
+        return None, {'status': 'not_found', 'message': 'Workflow instance not found.'}
+    return inst, None
 
 
 # ---------------------------------------------------------------------------
@@ -103,6 +136,9 @@ def _list_form_definitions_sync(user, status: Optional[str]) -> dict[str, Any]:
     qs = FormDefinition.objects.all()
     if status:
         qs = qs.filter(status=status)
+    # Bound the context handed to the LLM: newest version per slug first, capped
+    # so a mature install doesn't dump every historical version into the prompt.
+    qs = qs.order_by('slug', '-version')[:100]
     return {
         'status': 'ok',
         'forms': [
@@ -178,9 +214,9 @@ def _list_workflow_states_sync(user, model_label: str, object_ref: str) -> dict[
     if not P.WORKFLOWINSTANCE_VIEW.check(user, raised_error=False):
         return _denied('view workflow states')
 
-    obj_pk = GlobalIDUtils.get_pk_flexible(object_ref)
-    if not obj_pk:
-        return {'status': 'error', 'message': 'Invalid object reference.'}
+    obj_pk, error = _decode_ref(object_ref)
+    if error:
+        return error
 
     try:
         app_label, model_name = model_label.split('.')
@@ -191,6 +227,7 @@ def _list_workflow_states_sync(user, model_label: str, object_ref: str) -> dict[
     instances = (
         WorkflowInstance.objects
         .filter(content_type=ct, object_id=obj_pk)
+        .select_related('workflow')
         .order_by('-started_at')
     )
     return {
@@ -203,7 +240,10 @@ def _list_workflow_states_sync(user, model_label: str, object_ref: str) -> dict[
                 'current_state': inst.current_state,
                 'current_state_label': inst.workflow.get_state_label(inst.current_state),
                 'is_completed': inst.is_completed,
-                'available_transitions': _project_transitions(inst.get_available_transitions(user)),
+                'available_transitions': (
+                    [] if inst.is_completed
+                    else _project_transitions(inst.get_available_transitions(user))
+                ),
             }
             for inst in instances
         ],
@@ -213,9 +253,9 @@ def _list_workflow_states_sync(user, model_label: str, object_ref: str) -> dict[
 def _list_available_transitions_sync(user, instance_ref: str) -> dict[str, Any]:
     if not P.WORKFLOWINSTANCE_VIEW.check(user, raised_error=False):
         return _denied('view workflow transitions')
-    inst = _resolve_instance(instance_ref)
-    if not inst:
-        return {'status': 'not_found', 'message': 'Workflow instance not found.'}
+    inst, error = _resolve_instance(instance_ref)
+    if error:
+        return error
     return {
         'status': 'ok',
         'instance_ref': GlobalIDUtils.to_global_id('WorkflowInstance', inst.pk),
@@ -229,9 +269,9 @@ def _execute_workflow_transition_sync(user, instance_ref: str, to_state: str, no
     if not P.WORKFLOWINSTANCE_CHANGE.check(user, raised_error=False):
         return _denied('execute workflow transitions')
 
-    inst = _resolve_instance(instance_ref)
-    if not inst:
-        return {'status': 'not_found', 'message': 'Workflow instance not found.'}
+    inst, error = _resolve_instance(instance_ref)
+    if error:
+        return error
     if inst.is_completed:
         return {'status': 'error', 'message': 'This workflow instance is already completed.'}
 
@@ -243,17 +283,23 @@ def _execute_workflow_transition_sync(user, instance_ref: str, to_state: str, no
         }
 
     if not confirmed:
+        from_state_label = inst.workflow.get_state_label(inst.current_state)
+        to_state_label = inst.workflow.get_state_label(to_state)
+        # Explicit pass-through fields so the frontend confirm_workflow_transition
+        # tool can render the approve/deny prompt without re-deriving anything.
         return {
             'status': 'confirmation_required',
             'instance_ref': GlobalIDUtils.to_global_id('WorkflowInstance', inst.pk),
+            'workflow_name': inst.workflow.name,
             'from_state': inst.current_state,
+            'from_state_label': from_state_label,
             'to_state': to_state,
+            'to_state_label': to_state_label,
             'label': transition_def.get('label', to_state),
             'message': (
                 f'This will transition "{inst.workflow.name}" from '
-                f'"{inst.workflow.get_state_label(inst.current_state)}" to '
-                f'"{inst.workflow.get_state_label(to_state)}". Call '
-                'execute_workflow_transition again with confirmed=true to proceed.'
+                f'"{from_state_label}" to "{to_state_label}". A human must approve '
+                'it through confirm_workflow_transition before it runs.'
             ),
         }
 

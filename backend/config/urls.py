@@ -77,8 +77,11 @@ urlpatterns = [
 ]
 
 # Copilot AG-UI endpoint (feature-flagged). Mounted under BASE_URL like every
-# other API surface: POST /app/copilot/agui/ by default (see issue #4).
-if is_enabled(Feature.COPILOT):
+# other API surface: POST /app/copilot/agui/ by default (see issue #4). Gated on
+# FORMS and WORKFLOWS too: copilot.agent imports forms.models and
+# workflows.models at module scope, so mounting it while those features (and
+# their apps) are disabled would crash startup.
+if is_enabled(Feature.COPILOT) and is_enabled(Feature.FORMS) and is_enabled(Feature.WORKFLOWS):
     urlpatterns.append(path(f'{base}copilot/', include('copilot.urls')))
 
 if settings.DEBUG:

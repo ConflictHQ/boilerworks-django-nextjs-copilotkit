@@ -15,9 +15,11 @@ from __future__ import annotations
 import json
 from http import HTTPStatus
 
+from asgiref.sync import sync_to_async
 from copilot.agent import CopilotDeps, CopilotNotConfigured, get_agent
 from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.core import is_ratelimited
 from pydantic import ValidationError
 from pydantic_ai.ui import SSE_CONTENT_TYPE
 from pydantic_ai.ui.ag_ui import AGUIAdapter
@@ -38,6 +40,20 @@ async def copilot_agui(request):
         return JsonResponse(
             {'error': 'Authentication required.'},
             status=HTTPStatus.UNAUTHORIZED,
+        )
+
+    # Rate limit per user: each POST can trigger a paid model run, so throttle
+    # like the sibling GraphQL endpoints do. django_ratelimit's decorator is
+    # sync-only, so call its core primitive under sync_to_async. Pin request.user
+    # to the already-resolved user so the 'user' key needs no extra DB hit.
+    request.user = user
+    limited = await sync_to_async(is_ratelimited, thread_sensitive=True)(
+        request, group='copilot:agui', key='user', rate='30/m', increment=True,
+    )
+    if limited:
+        return JsonResponse(
+            {'error': 'Rate limit exceeded. Please slow down and retry shortly.'},
+            status=HTTPStatus.TOO_MANY_REQUESTS,
         )
 
     # Validate the AG-UI request payload at the boundary.

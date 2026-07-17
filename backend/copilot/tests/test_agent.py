@@ -147,8 +147,13 @@ class WorkflowTransitionToolTest(CopilotToolTestBase):
             'instance_ref': self.instance_ref, 'to_state': 'submitted', 'confirmed': False,
         })
         self.assertEqual(payload['status'], 'confirmation_required')
+        # Explicit pass-through fields the frontend confirm tool renders (FIX 3).
+        self.assertEqual(payload['workflow_name'], 'Doc Review')
         self.assertEqual(payload['from_state'], 'draft')
+        self.assertEqual(payload['from_state_label'], 'Draft')
         self.assertEqual(payload['to_state'], 'submitted')
+        self.assertEqual(payload['to_state_label'], 'Submitted')
+        self.assertEqual(payload['label'], 'Submit')
 
         self.instance.refresh_from_db()
         self.assertEqual(self.instance.current_state, 'draft')
@@ -187,3 +192,103 @@ class WorkflowTransitionToolTest(CopilotToolTestBase):
         self.assertEqual(len(payload['instances']), 1)
         self.assertEqual(payload['instances'][0]['current_state'], 'draft')
         self.assertEqual(payload['instances'][0]['instance_ref'], self.instance_ref)
+
+    def test_list_workflow_states_denied(self):
+        object_ref = GlobalIDUtils.to_global_id('FormDefinition', self.target.pk)
+        payload = self.run_tool(self.denied, 'list_workflow_states', {
+            'model_label': 'forms.FormDefinition', 'object_ref': object_ref,
+        })
+        self.assertEqual(payload['status'], 'permission_denied')
+
+    def test_execute_bare_digit_ref_rejected(self):
+        # A raw integer PK must be refused (no enumeration) and the agent run
+        # must complete normally rather than raising (FIX 2).
+        grant(self.org, self.allowed, P.WORKFLOWINSTANCE_CHANGE)
+        payload = self.run_tool(self.allowed, 'execute_workflow_transition', {
+            'instance_ref': str(self.instance.pk), 'to_state': 'submitted', 'confirmed': False,
+        })
+        self.assertEqual(payload['status'], 'error')
+        self.assertIn('reference ids', payload['message'])
+        self.instance.refresh_from_db()
+        self.assertEqual(self.instance.current_state, 'draft')
+
+    def test_execute_malformed_ref_not_found(self):
+        # An undecodable ref becomes a not_found tool result, not a crash (FIX 2).
+        grant(self.org, self.allowed, P.WORKFLOWINSTANCE_CHANGE)
+        payload = self.run_tool(self.allowed, 'execute_workflow_transition', {
+            'instance_ref': 'garbage-not-base64!!', 'to_state': 'submitted', 'confirmed': True,
+        })
+        self.assertEqual(payload['status'], 'not_found')
+        self.instance.refresh_from_db()
+        self.assertEqual(self.instance.current_state, 'draft')
+
+    def test_list_workflow_states_bare_digit_object_ref_rejected(self):
+        # The strict decode also guards the object_ref path (FIX 2).
+        grant(self.org, self.allowed, P.WORKFLOWINSTANCE_VIEW)
+        payload = self.run_tool(self.allowed, 'list_workflow_states', {
+            'model_label': 'forms.FormDefinition', 'object_ref': str(self.target.pk),
+        })
+        self.assertEqual(payload['status'], 'error')
+        self.assertIn('reference ids', payload['message'])
+
+
+class GetFormDefinitionToolTest(CopilotToolTestBase):
+
+    def setUp(self):
+        super().setUp()
+        FormDefinition.objects.create(
+            name='Beta', slug='beta', schema={'type': 'object'}, version=1,
+            status=FormStatus.DRAFT,
+        )
+
+    def test_get_allowed(self):
+        grant(self.org, self.allowed, P.FORMDEFINITION_VIEW)
+        payload = self.run_tool(self.allowed, 'get_form_definition', {'slug': 'beta'})
+        self.assertEqual(payload['status'], 'ok')
+        self.assertEqual(payload['slug'], 'beta')
+        self.assertEqual(payload['schema'], {'type': 'object'})
+
+    def test_get_denied(self):
+        payload = self.run_tool(self.denied, 'get_form_definition', {'slug': 'beta'})
+        self.assertEqual(payload['status'], 'permission_denied')
+
+
+class ListAvailableTransitionsToolTest(CopilotToolTestBase):
+
+    def setUp(self):
+        super().setUp()
+        self.wf = WorkflowDefinition.objects.create(
+            name='Doc Review', slug='doc-review', model_label='forms.FormDefinition',
+            states=[
+                {'name': 'draft', 'label': 'Draft', 'is_initial': True},
+                {'name': 'submitted', 'label': 'Submitted', 'is_final': True},
+            ],
+            transitions=[
+                {'from_state': 'draft', 'to_state': 'submitted', 'label': 'Submit'},
+            ],
+        )
+        self.target = FormDefinition.objects.create(name='Doc', slug='doc', schema={}, version=1)
+        self.instance = WorkflowInstance.start(self.wf, self.target, self.allowed)
+        self.instance_ref = GlobalIDUtils.to_global_id('WorkflowInstance', self.instance.pk)
+
+    def test_list_available_transitions_allowed(self):
+        grant(self.org, self.allowed, P.WORKFLOWINSTANCE_VIEW)
+        payload = self.run_tool(self.allowed, 'list_available_transitions', {
+            'instance_ref': self.instance_ref,
+        })
+        self.assertEqual(payload['status'], 'ok')
+        self.assertEqual(payload['current_state'], 'draft')
+        self.assertTrue(any(t['to_state'] == 'submitted' for t in payload['available_transitions']))
+
+    def test_list_available_transitions_denied(self):
+        payload = self.run_tool(self.denied, 'list_available_transitions', {
+            'instance_ref': self.instance_ref,
+        })
+        self.assertEqual(payload['status'], 'permission_denied')
+
+    def test_list_available_transitions_malformed_ref_not_found(self):
+        grant(self.org, self.allowed, P.WORKFLOWINSTANCE_VIEW)
+        payload = self.run_tool(self.allowed, 'list_available_transitions', {
+            'instance_ref': 'not-a-real-ref!!',
+        })
+        self.assertEqual(payload['status'], 'not_found')
