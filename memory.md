@@ -24,6 +24,8 @@ Multi-tenant SaaS platform. Django backend + Next.js frontend. Organisations are
 | django-role-permissions for RBAC | Group-based; permissions are never assigned directly to users |
 | Celery + Redis for async | Rule engine and scheduled state machine transitions run through Celery beat |
 | OpenSearch for full-text search | Signals drive incremental indexing; `make reindex` for full rebuilds |
+| Copilot agent lives in Django, not Node | Pydantic AI over AG-UI from a Django async view (`copilot` app) — direct ORM access, same session auth + group permissions as GraphQL; the Next.js `/api/copilotkit` route is a thin protocol bridge (CopilotRuntime + `ExperimentalEmptyAdapter`, LLM key never reaches the frontend) that authenticates the server hop with `Authorization: Session <key>` from the `backend_jwt` cookie |
+| Copilot HITL via confirmed=true re-call | Mutating tools with consequences (workflow transitions; inert drafts are exempt) return `confirmation_required` first and change nothing; the human approves through the frontend tool `confirm_workflow_transition`, then the agent re-calls with confirmed=true. Model-driven, works over plain AG-UI — a cooperative gate, not a security boundary; pydantic-ai's native `requires_approval` interrupt flow is the protocol-level upgrade if the gate must be adversarially robust |
 | `config/roles_gen.py` is generated | Do not edit by hand; regenerate with `make perms` after changing `config/permissions.py` |
 
 ---
@@ -34,6 +36,8 @@ Multi-tenant SaaS platform. Django backend + Next.js frontend. Organisations are
 - **Never expose integer PKs in APIs** — always use `guid` or relay node ID.
 - **Auth check is mandatory in every resolver and mutation** — the GraphQL middleware does not enforce this automatically.
 - **`roles_gen.py` is generated** — editing it manually will be overwritten by `make perms`.
+- **Copilot tool names are mirrored in `frontend/copilot/config.ts`** — rename a backend tool without updating the `COPILOT_TOOL_*` constant and the generative-UI/HITL render silently never fires.
+- **SSE streams are buffered under WSGI `runserver`** — the copilot works under `docker compose up` but responses arrive complete rather than token-by-token; serve via `config/asgi.py` (uvicorn/daphne) for true incremental streaming.
 - **Migrations are checked in pre-commit** — you must create a migration before committing model changes.
 - **`DEFAULT_AUTO_FIELD = BigAutoField`** — use `BigAutoField` (not `AutoField`) in manual migrations.
 - **isort + flake8 run on pre-commit** — `pipenv run isort .` before committing to avoid failures.

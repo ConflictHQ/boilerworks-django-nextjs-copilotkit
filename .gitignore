@@ -13,3 +13,7 @@ docker/runtime/
 .navegador/.env
 app/code-kg.json
 __pycache__/
+
+# Local credential drop files (never commit)
+copilotkit.token
+*.token

@@ -140,5 +140,31 @@
       "resultConfirmed": "Confirmado — elemento eliminado.",
       "resultCancelled": "Cancelado."
     }
+  },
+  "copilot": {
+    "title": "Asistente",
+    "initial": "¡Hola! Puedo ayudarte a redactar formularios y mover registros por sus flujos de trabajo. ¿Qué te gustaría hacer?",
+    "placeholder": "Pregunta al asistente…",
+    "formDraft": {
+      "title": "Formulario redactado",
+      "drafting": "Redactando…",
+      "untitled": "Formulario sin título",
+      "fields": "{count, plural, one {# campo} other {# campos}}",
+      "noFields": "Aún no hay campos",
+      "edit": "Abrir en el motor de formularios",
+      "savedAs": "Guardado como {slug} · v{version}",
+      "errorTitle": "No se pudo redactar el formulario",
+      "errorGeneric": "El formulario no se pudo redactar."
+    },
+    "workflowApproval": {
+      "title": "Confirmar transición del flujo",
+      "on": "en {workflow}",
+      "question": "¿Aplicar esta transición?",
+      "approve": "Aprobar",
+      "deny": "Denegar",
+      "approved": "Transición aprobada",
+      "denied": "Transición denegada",
+      "waiting": "Esperando al asistente…"
+    }
   }
 }

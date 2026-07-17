@@ -652,6 +652,37 @@ Both client patterns show a spinner while loading, call `notFound()` if `compone
 
 ---
 
+## Copilot (CopilotKit)
+
+All copilot code lives in `copilot/` (plus the `app/api/copilotkit/route.ts` bridge) — it is
+deliberately isolated so it ports to other templates.
+
+- `config.ts` — agent name, runtime URL, feature flag, and the `COPILOT_TOOL_*` constants.
+  Two kinds, do not mix them up: `COPILOT_TOOL_DRAFT_FORM` is a **backend** tool name rendered
+  render-only (`available: "disabled"` keeps it out of the advertised frontend tools — that flag
+  is what prevents a duplicate-name collision); `COPILOT_TOOL_CONFIRM_TRANSITION`
+  (`confirm_workflow_transition`) is a genuine **frontend** tool the agent calls for HITL
+  approval, so its name must NOT match any backend tool (pydantic-ai hard-errors on duplicates)
+- `agui-endpoint.ts` — server-only helpers: backend URL resolution (throws when neither
+  `NEXT_PUBLIC_API_ROOT` nor `COPILOT_AGUI_URL` is set) and forwarded headers
+  (`Authorization` from the `backend_jwt` cookie authenticates the server hop, like Apollo)
+- `CopilotProvider.tsx` — provider + sidebar; gated on `NEXT_PUBLIC_COPILOT_ENABLED` and
+  authentication; optional `NEXT_PUBLIC_COPILOTKIT_API_KEY` enables Copilot Cloud extras
+- `CopilotToolRenders.tsx` — `useCopilotAction` registrations: render-only generative UI for
+  form drafts (success card from args + result, `FormDraftErrorCard` for
+  permission_denied/invalid_schema/error results) and the `confirm_workflow_transition`
+  `renderAndWaitForResponse` approve/deny flow (`respond({ approved: true|false })`)
+- `copilot.css` — maps `--copilot-kit-*` vars onto the app's shadcn tokens (light + dark)
+- User-facing strings go through the `copilot` namespace in `messages/*.json` (all locales)
+
+Adding a render for a new backend tool: add the name constant to `config.ts` (matching
+`backend/copilot/agent.py` exactly), register a render-only `useCopilotAction`
+(`available: "disabled"`) in `CopilotToolRenders.tsx`, and test both states like
+`__tests__/copilot-generative-ui.test.tsx` does. Only HITL prompts get real frontend tools —
+and those need collision-free names.
+
+---
+
 ## Codegen (not yet configured)
 
 When codegen is added:

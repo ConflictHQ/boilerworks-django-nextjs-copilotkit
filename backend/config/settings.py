@@ -269,6 +269,7 @@ INSTALLED_APPS = [
     'simple_history',
     'forms',
     'workflows',
+    'copilot',
     'core_rule_engine',
     # End of Django Standard
 
@@ -759,4 +760,10 @@ METABASE_SECRET_KEY = env_str('METABASE_SECRET_KEY', '')
 METABASE_BACKEND_API_KEY = env_str('METABASE_BACKEND_API_KEY', '')
 
 logger.warning(f"METABASE_URL = {METABASE_SITE_URL}")
+
+# Copilot (Pydantic AI + AG-UI) — feature-flagged via FEATURE_COPILOT.
+# ANTHROPIC_API_KEY is read lazily when a request is served, so an unset key
+# only disables the copilot at request time (it never breaks startup/tests).
+ANTHROPIC_API_KEY = env_str('ANTHROPIC_API_KEY')
+COPILOT_MODEL = env_str('COPILOT_MODEL', 'anthropic:claude-sonnet-5')
 logger.warning(f"METABASE_SECRET_KEY = {METABASE_SECRET_KEY}")

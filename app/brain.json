@@ -157,7 +157,7 @@
    ]
   },
   {
-   "id": "template:django-nextjs-copilotkit",
+   "id": "template:django-nextjs",
    "kind": "Artifact",
    "title": "boilerworks-django-nextjs-copilotkit",
    "text": "Full-stack template: Django 6 + Strawberry GraphQL backend, Next.js 16 frontend, Celery workers, Postgres/Redis/OpenSearch/MinIO services. A boilerworks metarepo submodule and federable brain node.",
@@ -172,73 +172,73 @@
  ],
  "edges": [
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "engine:auth1",
    "rel": "provides",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "engine:forms",
    "rel": "provides",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "engine:uploads",
    "rel": "provides",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "engine:workflows",
    "rel": "provides",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:celery",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:django",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:minio",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:nextjs",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:opensearch",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:postgres",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:redis",
    "rel": "uses",
    "class": "structural"
   },
   {
-   "source": "template:django-nextjs-copilotkit",
+   "source": "template:django-nextjs",
    "target": "stack:strawberry",
    "rel": "uses",
    "class": "structural"

@@ -42,6 +42,7 @@ class Feature(str, Enum):
     PUSH_NOTIFICATIONS = 'push_notifications'
     FILE_UPLOADS = 'file_uploads'
     RULE_ENGINE = 'rule_engine'
+    COPILOT = 'copilot'
 
 
 # Feature → environment variable → default
@@ -56,6 +57,7 @@ FEATURE_DEFAULTS = {
     Feature.PUSH_NOTIFICATIONS: ('FEATURE_PUSH_NOTIFICATIONS', True),
     Feature.FILE_UPLOADS: ('FEATURE_FILE_UPLOADS', True),
     Feature.RULE_ENGINE: ('FEATURE_RULE_ENGINE', True),
+    Feature.COPILOT: ('FEATURE_COPILOT', True),
 }
 
 # Feature → Django apps that belong to it
@@ -65,6 +67,7 @@ FEATURE_APPS = {
     Feature.CELERY: ['django_celery_results', 'django_celery_beat'],
     Feature.PUSH_NOTIFICATIONS: ['pushnotif'],
     Feature.RULE_ENGINE: ['core_rule_engine'],
+    Feature.COPILOT: ['copilot'],
     Feature.OPENSEARCH: [],  # opensearch is a service, not a Django app
     Feature.METABASE: [],
     Feature.ROCKETCHAT: [],

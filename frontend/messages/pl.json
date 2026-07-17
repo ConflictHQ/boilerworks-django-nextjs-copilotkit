@@ -140,5 +140,31 @@
       "resultConfirmed": "Potwierdzono — element usunięty.",
       "resultCancelled": "Anulowano."
     }
+  },
+  "copilot": {
+    "title": "Asystent",
+    "initial": "Cześć! Mogę pomóc w tworzeniu formularzy i przenoszeniu rekordów przez ich przepływy pracy. Co chcesz zrobić?",
+    "placeholder": "Zapytaj asystenta…",
+    "formDraft": {
+      "title": "Roboczy formularz",
+      "drafting": "Tworzenie…",
+      "untitled": "Formularz bez tytułu",
+      "fields": "{count, plural, one {# pole} few {# pola} many {# pól} other {# pola}}",
+      "noFields": "Brak pól",
+      "edit": "Otwórz w silniku formularzy",
+      "savedAs": "Zapisano jako {slug} · v{version}",
+      "errorTitle": "Nie udało się utworzyć formularza",
+      "errorGeneric": "Nie udało się utworzyć roboczego formularza."
+    },
+    "workflowApproval": {
+      "title": "Potwierdź przejście przepływu pracy",
+      "on": "w {workflow}",
+      "question": "Zastosować to przejście?",
+      "approve": "Zatwierdź",
+      "deny": "Odrzuć",
+      "approved": "Przejście zatwierdzone",
+      "denied": "Przejście odrzucone",
+      "waiting": "Oczekiwanie na asystenta…"
+    }
   }
 }

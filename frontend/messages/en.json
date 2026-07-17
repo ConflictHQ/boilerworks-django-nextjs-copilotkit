@@ -140,5 +140,31 @@
       "resultConfirmed": "Confirmed — item deleted.",
       "resultCancelled": "Cancelled."
     }
+  },
+  "copilot": {
+    "title": "Assistant",
+    "initial": "Hi! I can help you draft forms and move records through their workflows. What would you like to do?",
+    "placeholder": "Ask the assistant…",
+    "formDraft": {
+      "title": "Drafted form",
+      "drafting": "Drafting…",
+      "untitled": "Untitled form",
+      "fields": "{count, plural, one {# field} other {# fields}}",
+      "noFields": "No fields yet",
+      "edit": "Open in Form Engine",
+      "savedAs": "Saved as {slug} · v{version}",
+      "errorTitle": "Couldn't draft form",
+      "errorGeneric": "The form could not be drafted."
+    },
+    "workflowApproval": {
+      "title": "Confirm workflow transition",
+      "on": "on {workflow}",
+      "question": "Apply this transition?",
+      "approve": "Approve",
+      "deny": "Deny",
+      "approved": "Transition approved",
+      "denied": "Transition denied",
+      "waiting": "Waiting for the assistant…"
+    }
   }
 }

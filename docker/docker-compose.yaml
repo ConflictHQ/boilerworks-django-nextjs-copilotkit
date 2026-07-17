@@ -31,6 +31,11 @@ services:
       - AWS_STORAGE_BUCKET_NAME=boilerworks
       - AWS_S3_ENDPOINT_URL=http://minio-local:9000
       - AWS_S3_CUSTOM_DOMAIN=
+      # Copilot (Pydantic AI + AG-UI): ANTHROPIC_API_KEY and COPILOT_MODEL are
+      # supplied by local.env via the env_file above, which is the single source
+      # of truth. No bare-key passthrough here on purpose — in compose the
+      # `environment:` block overrides `env_file`, so forwarding a host-shell
+      # ANTHROPIC_API_KEY would silently clobber local.env's value.
     volumes:
       - ../backend:/boilerworks
     depends_on:
