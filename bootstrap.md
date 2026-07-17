@@ -22,6 +22,7 @@ An agent given this document and a business requirement should be able to genera
 | Admin | Custom dark theme, BaseCoreAdmin (import/export, tracking fields), DJDT |
 | Rule engine | Conditions + Actions + RuleProviderMixin, Celery-backed evaluation |
 | State machine | DFA model, cron-scheduled transitions via Celery beat |
+| Copilot | Pydantic AI agent over AG-UI (`copilot` app), CopilotKit UI in the frontend, permission-checked tools over the forms + workflow engines |
 | Infra | Docker Compose: postgres, redis, opensearch, minio (S3), celery-worker, celery-beat, mailpit, ui |
 | CI | GitHub Actions: lint (pre-commit) + tests (postgres + redis services) |
 | Seed | `make seed`, numbered fixtures, `--flush` flag |
@@ -37,6 +38,7 @@ An agent given this document and a business requirement should be able to genera
 | `core_logs` | Permission access logging (`PermissionAccessLog`) |
 | `core_rule_engine` | Rule definitions, conditions, actions, model signal triggers |
 | `core_ui` | UI components, file processors |
+| `copilot` | AG-UI copilot agent (Pydantic AI): endpoint view, tools, deps |
 | `organization` | Organization + OrganizationMember models, member status |
 | `pushnotif` | Push notifications, delivery methods, Celery tasks |
 | `scheduled_task` | Background scheduled tasks |
@@ -217,6 +219,60 @@ Async actions from workflow transitions go through `appname/tasks.py`.
 
 ---
 
+### Copilot (AG-UI agent)
+
+The copilot is a Pydantic AI agent served over the AG-UI protocol from a Django
+async view at `POST /app/copilot/agui/` (`copilot/views.py`). Feature-gated by
+`FEATURE_COPILOT`; requires `ANTHROPIC_API_KEY` (unset → 503, the rest of the
+app is unaffected). Model configured via `COPILOT_MODEL`
+(default `anthropic:claude-sonnet-5`).
+
+**Auth.** The view rejects anonymous requests with 401 before any model call.
+The authenticated user rides in `CopilotDeps`; the frontend bridge
+(`frontend/app/api/copilotkit/route.ts`) authenticates the server-to-server hop
+with `Authorization: Session <key>` from the `backend_jwt` cookie — the same
+credential the Apollo clients send.
+
+**Tools** live in `copilot/agent.py`: a sync implementation (ORM work) wrapped
+by an async AG-UI-facing function, registered via the `TOOLS` tuple in
+`build_agent()`. Every tool follows the same shape:
+
+```python
+def _my_tool_sync(user, ...) -> dict[str, Any]:
+    if not P.MYMODEL_VIEW.check(user, raised_error=False):
+        return _denied('view my models')
+    ...  # thin wrapper over an existing engine/service — no new business logic
+    return {'status': 'ok', ...}
+
+async def my_tool(ctx: RunContext[CopilotDeps], ...) -> dict[str, Any]:
+    """Docstring is the tool description the model sees — say what it needs."""
+    return await sync_to_async(_my_tool_sync, thread_sensitive=True)(ctx.deps.user, ...)
+
+# then add `my_tool` to the TOOLS tuple
+```
+
+Rules, same as GraphQL: permission check first (group-based, `P.*` enums),
+external IDs only (slug / relay global ID via `GlobalIDUtils` — never integer
+PKs), permission failures are tool *results* (not exceptions) so the agent can
+explain.
+
+**Human-in-the-loop.** Mutating tools with consequences return
+`{'status': 'confirmation_required', ...}` on the first call and change
+nothing; they execute only when re-called with `confirmed=true` (the frontend
+renders approve/deny from the payload). Keep this invariant for any new
+mutating tool, and test both halves.
+
+**Frontend names must match.** Tool names are mirrored in
+`frontend/copilot/config.ts` (`COPILOT_TOOL_*` constants) so generative-UI /
+HITL renders fire — update both sides together.
+
+**Tests** (`copilot/tests/`): drive the agent with Pydantic AI's
+`TestModel`/`FunctionModel` (`ALLOW_MODEL_REQUESTS=False` — never live LLM
+calls), real database, both allowed and denied cases per permission-gated
+tool, and the unconfirmed/confirmed HITL pair.
+
+---
+
 ### Tests
 
 Use `schema.execute_sync()` for GraphQL tests:
@@ -300,6 +356,7 @@ make test
 | Next.js UI | http://localhost:3000 |
 | Django Admin | http://localhost:8000/app/admin/ |
 | GraphQL | http://localhost:8000/app/gql/config/ |
+| Copilot AG-UI | http://localhost:8000/app/copilot/agui/ (POST, session-authed) |
 | Health | http://localhost:8000/health/ |
 | Mailpit | http://localhost:8025 |
 | OpenSearch | http://localhost:9200 |

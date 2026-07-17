@@ -1,6 +1,6 @@
-# Boilerworks
+# Boilerworks — Django + Next.js + CopilotKit
 
-Production-ready Django + Next.js boilerplate for building enterprise applications. Forms engine, workflow engine, visual builders, session auth, GraphQL, Celery, role-based permissions, audit trails, and more — all wired up and ready to extend.
+Production-ready Django + Next.js boilerplate with an **agentic in-app copilot pre-wired**. Everything from [boilerworks-django-nextjs](https://github.com/ConflictHQ/boilerworks-django-nextjs) — forms engine, workflow engine, visual builders, session auth, GraphQL, Celery, role-based permissions, audit trails — plus a CopilotKit copilot whose agent lives in Django, speaks the AG-UI protocol, and can only do what the logged-in user can do.
 
 See [`bootstrap.md`](bootstrap.md) for conventions, patterns, and how to add new features.
 
@@ -12,11 +12,20 @@ See [`bootstrap.md`](bootstrap.md) for conventions, patterns, and how to add new
 |---|---|
 | Backend | Django 6, Strawberry GraphQL, DRF, Celery, Postgres, Redis, OpenSearch |
 | Frontend | Next.js 16 (App Router), Apollo Client, TypeScript, Tailwind CSS, shadcn/ui |
+| Copilot | CopilotKit (React UI) + Pydantic AI agent in Django over the AG-UI protocol |
 | Infra | Docker Compose — all services containerised |
 
 ---
 
 ## Features
+
+### AI Copilot
+- **CopilotKit** chat sidebar in the Next.js app, restyled to shadcn/Tailwind
+- Agent lives **in the Django process** (Pydantic AI over the AG-UI protocol) — direct ORM access, no separate agent service
+- **Session-auth end to end**: the copilot endpoint sits behind the same httpOnly-cookie session auth as GraphQL; every tool re-checks group permissions, so the agent can only do what the logged-in user can do
+- Tools wired to the engines below: draft form definitions (forms engine), inspect states and execute transitions (workflow engine) — transitions are **human-in-the-loop** (approve/deny in the UI before anything runs)
+- Generative UI: tool results render as components, with page context via `useCopilotReadable`
+- Feature-flagged and additive — without an `ANTHROPIC_API_KEY` the template runs as plain django-nextjs
 
 ### Forms Engine
 - **JSON Schema-based** form definitions with 21+ field types
@@ -91,6 +100,8 @@ cd boilerworks-django-nextjs-copilotkit
 ./run.sh logs     # tail Django logs
 ./run.sh health   # per-service health check
 ```
+
+To enable the copilot, set `ANTHROPIC_API_KEY` in `backend/config/local.env` (see `example.env`). Everything else works without it.
 
 ---
 

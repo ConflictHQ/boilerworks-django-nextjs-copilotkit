@@ -16,3 +16,4 @@ Read both before writing any code.
 - `config/roles_gen.py` is generated — don't edit it; run `make perms`.
 - Never expose integer PKs — use `guid` or the relay global ID.
 - Soft-delete only: set `deleted_at`/`deleted_by`, never `.delete()`. Run `make lint` (flake8 + isort) before committing; max line length 140.
+- The in-app copilot is a Pydantic AI agent over AG-UI (`copilot` app, `POST /app/copilot/agui/`) with CopilotKit UI in `frontend/copilot/`. Tool conventions (permissions, HITL, name mirroring) are in bootstrap.md "Copilot (AG-UI agent)".
