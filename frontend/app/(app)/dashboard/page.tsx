@@ -4,6 +4,7 @@ import { SalesChart } from "./sales-chart";
 import { ChannelChart } from "./channel-chart";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { TrendingUpIcon, ShoppingCartIcon, UsersIcon, PackageIcon } from "lucide-react";
+import { DashboardCopilotContext } from "@/copilot/DashboardCopilotContext";
 
 export default async function DashboardPage() {
   const t = await getTranslations("dashboard");
@@ -17,6 +18,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
+      <DashboardCopilotContext
+        stats={stats.map(({ label, value, change }) => ({ label, value, change }))}
+      />
+
       {/* stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map(({ label, value, change, icon: Icon }) => (

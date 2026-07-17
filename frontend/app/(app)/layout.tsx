@@ -6,6 +6,7 @@ import { PreloadQuery, getClient } from "@/lib/apollo";
 import { GET_ME } from "@/graphql/user/user.queries";
 import type { CurrentUser, MeQueryData, MeQueryVariables } from "@/graphql/user/user.types";
 import { PageHeader } from "@/components/PageHeader";
+import { CopilotProvider } from "@/copilot/CopilotProvider";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   // Check for auth token in cookies — if no token at all, redirect to login
@@ -29,13 +30,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <PreloadQuery query={GET_ME}>
-      <SidebarProvider>
-        <AppSidebar ssrUser={ssrUser} />
-        <SidebarInset>
-          <PageHeader />
-          {children}
-        </SidebarInset>
-      </SidebarProvider>
+      <CopilotProvider authenticated={ssrUser != null}>
+        <SidebarProvider>
+          <AppSidebar ssrUser={ssrUser} />
+          <SidebarInset>
+            <PageHeader />
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
+      </CopilotProvider>
     </PreloadQuery>
   );
 }

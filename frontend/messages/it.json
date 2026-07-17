@@ -140,5 +140,28 @@
       "resultConfirmed": "Confermato — elemento eliminato.",
       "resultCancelled": "Annullato."
     }
+  },
+  "copilot": {
+    "title": "Assistente",
+    "initial": "Ciao! Posso aiutarti a redigere moduli e a far avanzare i record nei loro flussi di lavoro. Cosa vuoi fare?",
+    "placeholder": "Chiedi all'assistente…",
+    "formDraft": {
+      "title": "Modulo redatto",
+      "drafting": "Redazione…",
+      "untitled": "Modulo senza titolo",
+      "fields": "{count, plural, one {# campo} other {# campi}}",
+      "noFields": "Ancora nessun campo",
+      "edit": "Apri nel motore dei moduli"
+    },
+    "workflowApproval": {
+      "title": "Conferma transizione del flusso di lavoro",
+      "on": "su {workflow}",
+      "question": "Applicare questa transizione?",
+      "approve": "Approva",
+      "deny": "Rifiuta",
+      "approved": "Transizione approvata",
+      "denied": "Transizione rifiutata",
+      "waiting": "In attesa dell'assistente…"
+    }
   }
 }

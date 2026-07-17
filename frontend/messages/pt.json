@@ -140,5 +140,28 @@
       "resultConfirmed": "Confirmado — item excluído.",
       "resultCancelled": "Cancelado."
     }
+  },
+  "copilot": {
+    "title": "Assistente",
+    "initial": "Olá! Posso ajudar a redigir formulários e a mover registros pelos seus fluxos de trabalho. O que você gostaria de fazer?",
+    "placeholder": "Pergunte ao assistente…",
+    "formDraft": {
+      "title": "Formulário redigido",
+      "drafting": "Redigindo…",
+      "untitled": "Formulário sem título",
+      "fields": "{count, plural, one {# campo} other {# campos}}",
+      "noFields": "Ainda sem campos",
+      "edit": "Abrir no motor de formulários"
+    },
+    "workflowApproval": {
+      "title": "Confirmar transição do fluxo de trabalho",
+      "on": "em {workflow}",
+      "question": "Aplicar esta transição?",
+      "approve": "Aprovar",
+      "deny": "Recusar",
+      "approved": "Transição aprovada",
+      "denied": "Transição recusada",
+      "waiting": "Aguardando o assistente…"
+    }
   }
 }

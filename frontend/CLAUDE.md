@@ -652,6 +652,29 @@ Both client patterns show a spinner while loading, call `notFound()` if `compone
 
 ---
 
+## Copilot (CopilotKit)
+
+All copilot code lives in `copilot/` (plus the `app/api/copilotkit/route.ts` bridge) — it is
+deliberately isolated so it ports to other templates.
+
+- `config.ts` — agent name, runtime URL, feature flag, and the `COPILOT_TOOL_*` constants that
+  **must match the backend tool names** in `backend/copilot/agent.py` (mismatch = renders silently
+  never fire)
+- `agui-endpoint.ts` — server-only helpers: backend URL resolution and forwarded headers
+  (`Authorization` from the `backend_jwt` cookie authenticates the server hop, like Apollo)
+- `CopilotProvider.tsx` — provider + sidebar; gated on `NEXT_PUBLIC_COPILOT_ENABLED` and
+  authentication; optional `NEXT_PUBLIC_COPILOTKIT_API_KEY` enables Copilot Cloud extras
+- `CopilotToolRenders.tsx` — `useCopilotAction` registrations: generative UI for form drafts,
+  `renderAndWaitForResponse` HITL approve/deny for workflow transitions
+- `copilot.css` — maps `--copilot-kit-*` vars onto the app's shadcn tokens (light + dark)
+- User-facing strings go through the `copilot` namespace in `messages/*.json` (all locales)
+
+Adding a render for a new backend tool: add the name constant to `config.ts`, register a
+`useCopilotAction` in `CopilotToolRenders.tsx`, and test both states like
+`__tests__/copilot-generative-ui.test.tsx` does.
+
+---
+
 ## Codegen (not yet configured)
 
 When codegen is added:

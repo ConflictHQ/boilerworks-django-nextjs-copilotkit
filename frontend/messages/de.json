@@ -140,5 +140,28 @@
       "resultConfirmed": "Bestätigt — Element gelöscht.",
       "resultCancelled": "Abgebrochen."
     }
+  },
+  "copilot": {
+    "title": "Assistent",
+    "initial": "Hallo! Ich kann Ihnen helfen, Formulare zu entwerfen und Datensätze durch ihre Workflows zu bewegen. Was möchten Sie tun?",
+    "placeholder": "Assistent fragen…",
+    "formDraft": {
+      "title": "Entworfenes Formular",
+      "drafting": "Wird entworfen…",
+      "untitled": "Formular ohne Titel",
+      "fields": "{count, plural, one {# Feld} other {# Felder}}",
+      "noFields": "Noch keine Felder",
+      "edit": "Im Formular-Engine öffnen"
+    },
+    "workflowApproval": {
+      "title": "Workflow-Übergang bestätigen",
+      "on": "in {workflow}",
+      "question": "Diesen Übergang anwenden?",
+      "approve": "Genehmigen",
+      "deny": "Ablehnen",
+      "approved": "Übergang genehmigt",
+      "denied": "Übergang abgelehnt",
+      "waiting": "Warte auf den Assistenten…"
+    }
   }
 }
