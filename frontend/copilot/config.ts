@@ -17,12 +17,26 @@ export const COPILOT_AGENT_NAME = "boilerworks_agent";
 export const COPILOT_RUNTIME_URL = "/api/copilotkit";
 
 /**
- * Backend tool names the agent exposes. These MUST match the Pydantic-AI tool
- * names on the Django `/copilot/agui/` agent, otherwise the generative-UI /
- * HITL renders never fire. Kept here as the single reconciliation point.
+ * Backend tool name, rendered render-only. This MUST match the Pydantic-AI tool
+ * name on the Django `/copilot/agui/` agent (`backend/copilot/agent.py`),
+ * otherwise the generative-UI render never fires. The matching `useCopilotAction`
+ * is registered `available: "disabled"` — that flag is what keeps it OUT of the
+ * frontend tool list CopilotKit advertises in `RunAgentInput.tools`, so it never
+ * collides with the identically-named backend tool. Preserve that.
  */
 export const COPILOT_TOOL_DRAFT_FORM = "draft_form_definition";
-export const COPILOT_TOOL_TRANSITION_WORKFLOW = "execute_workflow_transition";
+
+/**
+ * Genuine FRONTEND tool. The agent calls this to obtain human approval before it
+ * executes a workflow transition. Because it is advertised as a real frontend
+ * tool (NOT `available: "disabled"`), its name must NOT collide with any backend
+ * tool name in `backend/copilot/agent.py` — pydantic-ai rejects duplicate tool
+ * names. The backend `execute_workflow_transition` tool stays backend-only; the
+ * agent bridges the two: `execute_workflow_transition` (unconfirmed) →
+ * `confirm_workflow_transition` → on `{ approved: true }` re-call
+ * `execute_workflow_transition` with `confirmed=true`.
+ */
+export const COPILOT_TOOL_CONFIRM_TRANSITION = "confirm_workflow_transition";
 
 /**
  * Feature flag. The copilot surface is optional, mirroring how the template

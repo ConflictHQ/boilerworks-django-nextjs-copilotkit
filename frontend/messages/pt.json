@@ -151,7 +151,10 @@
       "untitled": "Formulário sem título",
       "fields": "{count, plural, one {# campo} other {# campos}}",
       "noFields": "Ainda sem campos",
-      "edit": "Abrir no motor de formulários"
+      "edit": "Abrir no motor de formulários",
+      "savedAs": "Salvo como {slug} · v{version}",
+      "errorTitle": "Não foi possível redigir o formulário",
+      "errorGeneric": "O formulário não pôde ser redigido."
     },
     "workflowApproval": {
       "title": "Confirmar transição do fluxo de trabalho",

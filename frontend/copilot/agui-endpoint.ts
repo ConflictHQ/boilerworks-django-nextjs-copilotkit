@@ -13,11 +13,22 @@
  * template (GraphQL lives at `${NEXT_PUBLIC_API_ROOT}/app/gql/config/`).
  * `COPILOT_AGUI_URL` overrides the whole URL when the AG-UI endpoint is mounted
  * elsewhere or served by a separate host.
+ *
+ * Throws when neither env var yields an absolute origin: falling back to a
+ * relative `/app/copilot/agui/` would hand HttpAgent's Node `fetch` a URL it
+ * cannot parse, surfacing as a cryptic runtime 500. Fail loudly at the source.
  */
 export function getCopilotBackendUrl(): string {
   const override = process.env.COPILOT_AGUI_URL?.trim();
   if (override) return override;
-  const apiRoot = (process.env.NEXT_PUBLIC_API_ROOT ?? "").replace(/\/+$/, "");
+  const apiRoot = (process.env.NEXT_PUBLIC_API_ROOT ?? "").trim().replace(/\/+$/, "");
+  if (!apiRoot) {
+    throw new Error(
+      "Copilot backend URL is not configured. Set NEXT_PUBLIC_API_ROOT to the Django " +
+        "origin (e.g. http://localhost:8000), or COPILOT_AGUI_URL to the full AG-UI " +
+        "endpoint URL when it is served elsewhere."
+    );
+  }
   return `${apiRoot}/app/copilot/agui/`;
 }
 

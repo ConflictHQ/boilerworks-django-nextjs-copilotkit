@@ -151,7 +151,10 @@
       "untitled": "Formulaire sans titre",
       "fields": "{count, plural, one {# champ} other {# champs}}",
       "noFields": "Aucun champ pour l'instant",
-      "edit": "Ouvrir dans le moteur de formulaires"
+      "edit": "Ouvrir dans le moteur de formulaires",
+      "savedAs": "Enregistré sous {slug} · v{version}",
+      "errorTitle": "Impossible de rédiger le formulaire",
+      "errorGeneric": "Le formulaire n'a pas pu être rédigé."
     },
     "workflowApproval": {
       "title": "Confirmer la transition du workflow",

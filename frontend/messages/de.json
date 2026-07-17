@@ -151,7 +151,10 @@
       "untitled": "Formular ohne Titel",
       "fields": "{count, plural, one {# Feld} other {# Felder}}",
       "noFields": "Noch keine Felder",
-      "edit": "Im Formular-Engine öffnen"
+      "edit": "Im Formular-Engine öffnen",
+      "savedAs": "Gespeichert als {slug} · v{version}",
+      "errorTitle": "Formularentwurf fehlgeschlagen",
+      "errorGeneric": "Das Formular konnte nicht entworfen werden."
     },
     "workflowApproval": {
       "title": "Workflow-Übergang bestätigen",

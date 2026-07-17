@@ -68,6 +68,20 @@ describe("getCopilotBackendUrl", () => {
     process.env.COPILOT_AGUI_URL = "https://agent.example.com/agui/";
     expect(getCopilotBackendUrl()).toBe("https://agent.example.com/agui/");
   });
+
+  it("throws a configuration error when neither env var yields an origin", () => {
+    delete process.env.COPILOT_AGUI_URL;
+    delete process.env.NEXT_PUBLIC_API_ROOT;
+    // A relative fallback would hand HttpAgent's Node fetch an unparseable URL.
+    expect(() => getCopilotBackendUrl()).toThrow(/NEXT_PUBLIC_API_ROOT/);
+    expect(() => getCopilotBackendUrl()).toThrow(/COPILOT_AGUI_URL/);
+  });
+
+  it("throws when NEXT_PUBLIC_API_ROOT is whitespace-only and no override is set", () => {
+    delete process.env.COPILOT_AGUI_URL;
+    process.env.NEXT_PUBLIC_API_ROOT = "   ";
+    expect(() => getCopilotBackendUrl()).toThrow(/not configured/i);
+  });
 });
 
 // --- route handler wiring (runtime boundary mocked) ------------------------

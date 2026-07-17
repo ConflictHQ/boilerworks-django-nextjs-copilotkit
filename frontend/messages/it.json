@@ -151,7 +151,10 @@
       "untitled": "Modulo senza titolo",
       "fields": "{count, plural, one {# campo} other {# campi}}",
       "noFields": "Ancora nessun campo",
-      "edit": "Apri nel motore dei moduli"
+      "edit": "Apri nel motore dei moduli",
+      "savedAs": "Salvato come {slug} · v{version}",
+      "errorTitle": "Impossibile redigere il modulo",
+      "errorGeneric": "Non è stato possibile redigere il modulo."
     },
     "workflowApproval": {
       "title": "Conferma transizione del flusso di lavoro",

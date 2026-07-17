@@ -151,7 +151,10 @@
       "untitled": "Untitled form",
       "fields": "{count, plural, one {# field} other {# fields}}",
       "noFields": "No fields yet",
-      "edit": "Open in Form Engine"
+      "edit": "Open in Form Engine",
+      "savedAs": "Saved as {slug} · v{version}",
+      "errorTitle": "Couldn't draft form",
+      "errorGeneric": "The form could not be drafted."
     },
     "workflowApproval": {
       "title": "Confirm workflow transition",

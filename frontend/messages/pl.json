@@ -151,7 +151,10 @@
       "untitled": "Formularz bez tytułu",
       "fields": "{count, plural, one {# pole} few {# pola} many {# pól} other {# pola}}",
       "noFields": "Brak pól",
-      "edit": "Otwórz w silniku formularzy"
+      "edit": "Otwórz w silniku formularzy",
+      "savedAs": "Zapisano jako {slug} · v{version}",
+      "errorTitle": "Nie udało się utworzyć formularza",
+      "errorGeneric": "Nie udało się utworzyć roboczego formularza."
     },
     "workflowApproval": {
       "title": "Potwierdź przejście przepływu pracy",

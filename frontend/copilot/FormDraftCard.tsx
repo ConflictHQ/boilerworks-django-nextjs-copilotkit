@@ -14,6 +14,10 @@ export type FormDraftCardProps = {
   fields: DraftField[];
   editHref: string;
   drafting?: boolean;
+  /** Persisted slug — only known once the draft is created (from the result). */
+  slug?: string;
+  /** Persisted version — only known once the draft is created (from the result). */
+  version?: number;
 };
 
 const MAX_VISIBLE_FIELDS = 6;
@@ -29,6 +33,8 @@ export function FormDraftCard({
   fields,
   editHref,
   drafting = false,
+  slug,
+  version,
 }: FormDraftCardProps) {
   const t = useTranslations("copilot.formDraft");
   const visible = fields.slice(0, MAX_VISIBLE_FIELDS);
@@ -51,6 +57,10 @@ export function FormDraftCard({
           {drafting ? t("drafting") : t("title")}
         </Badge>
       </div>
+
+      {!drafting && slug !== undefined && version !== undefined ? (
+        <p className="text-muted-foreground mt-1 text-xs">{t("savedAs", { slug, version })}</p>
+      ) : null}
 
       {description ? (
         <p className="text-muted-foreground mt-2 line-clamp-2">{description}</p>
