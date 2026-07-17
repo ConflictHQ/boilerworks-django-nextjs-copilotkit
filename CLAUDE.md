@@ -15,7 +15,7 @@ Read both before writing any code.
 - Auth check is required at the top of **every** GraphQL resolver and mutation.
 - `config/roles_gen.py` is generated — don't edit it; use `make perms`.
 - Soft-delete only: set `deleted_at`/`deleted_by`, never call `.delete()` on business objects.
-- Copilot tools (`copilot/agent.py`): permission check first, results not exceptions, external IDs only; mutating tools are HITL (`confirmation_required` → `confirmed=true`). Tool names are mirrored in `frontend/copilot/config.ts` — change both together. Tests use `TestModel`/`FunctionModel`, never live LLM calls. See bootstrap.md "Copilot (AG-UI agent)".
+- Copilot tools (`copilot/agent.py`): permission check first, results not exceptions, external IDs only; mutating tools with consequences (e.g. workflow transitions — not inert drafts) are HITL (`confirmation_required` → `confirmed=true`). Tool names are mirrored in `frontend/copilot/config.ts` — change both together. Tests use `TestModel`/`FunctionModel`, never live LLM calls. See bootstrap.md "Copilot (AG-UI agent)".
 
 ## GraphQL stack
 

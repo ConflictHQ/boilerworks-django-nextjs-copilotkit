@@ -256,15 +256,23 @@ external IDs only (slug / relay global ID via `GlobalIDUtils` — never integer
 PKs), permission failures are tool *results* (not exceptions) so the agent can
 explain.
 
-**Human-in-the-loop.** Mutating tools with consequences return
+**Human-in-the-loop.** Mutating tools with consequences (workflow
+transitions; inert drafts are exempt) return
 `{'status': 'confirmation_required', ...}` on the first call and change
-nothing; they execute only when re-called with `confirmed=true` (the frontend
-renders approve/deny from the payload). Keep this invariant for any new
-mutating tool, and test both halves.
+nothing. The agent then calls `confirm_workflow_transition` — a **frontend**
+tool registered by CopilotKit that renders the approve/deny card and returns
+`{approved: true|false}` — and only re-calls the backend tool with
+`confirmed=true` on approval. Keep this invariant for any new mutating tool,
+and test both halves. This is a cooperative gate (the server verifies
+permissions, not approval provenance); if it must be adversarially robust,
+upgrade to pydantic-ai's native `requires_approval` deferred-tool flow.
 
-**Frontend names must match.** Tool names are mirrored in
-`frontend/copilot/config.ts` (`COPILOT_TOOL_*` constants) so generative-UI /
-HITL renders fire — update both sides together.
+**Frontend names must not collide — and render names must match.** Backend
+tool names rendered by the frontend are mirrored in
+`frontend/copilot/config.ts` (`COPILOT_TOOL_*` constants); a mismatch means
+the render silently never fires. Frontend-registered tools (like
+`confirm_workflow_transition`) must NOT share a name with any backend tool —
+AG-UI merges both toolsets and pydantic-ai raises a hard error on duplicates.
 
 **Tests** (`copilot/tests/`): drive the agent with Pydantic AI's
 `TestModel`/`FunctionModel` (`ALLOW_MODEL_REQUESTS=False` — never live LLM

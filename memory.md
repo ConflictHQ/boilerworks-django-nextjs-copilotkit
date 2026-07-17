@@ -25,7 +25,7 @@ Multi-tenant SaaS platform. Django backend + Next.js frontend. Organisations are
 | Celery + Redis for async | Rule engine and scheduled state machine transitions run through Celery beat |
 | OpenSearch for full-text search | Signals drive incremental indexing; `make reindex` for full rebuilds |
 | Copilot agent lives in Django, not Node | Pydantic AI over AG-UI from a Django async view (`copilot` app) — direct ORM access, same session auth + group permissions as GraphQL; the Next.js `/api/copilotkit` route is a thin protocol bridge (CopilotRuntime + `ExperimentalEmptyAdapter`, LLM key never reaches the frontend) that authenticates the server hop with `Authorization: Session <key>` from the `backend_jwt` cookie |
-| Copilot HITL via confirmed=true re-call | Mutating tools return `confirmation_required` first and change nothing; the model-driven re-call pattern works over plain AG-UI (pydantic-ai's native `requires_approval` interrupt flow is an available upgrade) |
+| Copilot HITL via confirmed=true re-call | Mutating tools with consequences (workflow transitions; inert drafts are exempt) return `confirmation_required` first and change nothing; the human approves through the frontend tool `confirm_workflow_transition`, then the agent re-calls with confirmed=true. Model-driven, works over plain AG-UI — a cooperative gate, not a security boundary; pydantic-ai's native `requires_approval` interrupt flow is the protocol-level upgrade if the gate must be adversarially robust |
 | `config/roles_gen.py` is generated | Do not edit by hand; regenerate with `make perms` after changing `config/permissions.py` |
 
 ---
