@@ -10,15 +10,16 @@ from core import views
 from core.schema.views import CoreStrawberryView
 from core.utils.debug import autologin
 from core.utils.logger_helper import gql_logger
-from django_ratelimit.decorators import ratelimit
 from django.conf import settings
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView
+from django_ratelimit.decorators import ratelimit
 from pushnotif.twilio import TwilioService
 
+from .features import Feature, is_enabled
 from .schema import schema, schema_auth
 from .views import app_root_view, metrics_view, root_view, test_open_telemetry
 
@@ -74,6 +75,11 @@ urlpatterns = [
     path(f'{base}metrics/', metrics_view, name='metrics'),
     path('health/', include('health_check.urls')),
 ]
+
+# Copilot AG-UI endpoint (feature-flagged). Mounted under BASE_URL like every
+# other API surface: POST /app/copilot/agui/ by default (see issue #4).
+if is_enabled(Feature.COPILOT):
+    urlpatterns.append(path(f'{base}copilot/', include('copilot.urls')))
 
 if settings.DEBUG:
     import debug_toolbar

@@ -31,6 +31,10 @@ services:
       - AWS_STORAGE_BUCKET_NAME=boilerworks
       - AWS_S3_ENDPOINT_URL=http://minio-local:9000
       - AWS_S3_CUSTOM_DOMAIN=
+      # Copilot (Pydantic AI + AG-UI) — pass through from the host/local.env.
+      # Bare keys forward the value only if set, so local.env is never clobbered.
+      - ANTHROPIC_API_KEY
+      - COPILOT_MODEL
     volumes:
       - ../backend:/boilerworks
     depends_on:
