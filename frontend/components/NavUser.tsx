@@ -157,7 +157,6 @@ export const NavUser = ({ ssrUser }: { ssrUser: CurrentUser | null }) => {
               </p>
               <Row label="me.id" value={ssrUser?.id ?? "—"} />
               <Row label="me.profile.displayName" value={ssrUser?.profile?.displayName ?? "—"} />
-              <Row label="me.profile.displayName" value={ssrUser?.profile?.displayName ?? "—"} />
             </section>
 
             <Separator />
@@ -168,7 +167,6 @@ export const NavUser = ({ ssrUser }: { ssrUser: CurrentUser | null }) => {
                 {meLoading && <span className="font-normal normal-case">loading…</span>}
               </p>
               <Row label="me.id" value={meData?.me?.id ?? "—"} />
-              <Row label="me.profile.displayName" value={meData?.me?.profile?.displayName ?? "—"} />
               <Row label="me.profile.displayName" value={meData?.me?.profile?.displayName ?? "—"} />
             </section>
           </div>

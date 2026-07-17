@@ -562,7 +562,6 @@ input ProfileInput {
 }
 
 type ProfileType {
-  guid: UUID!
   displayName: String
   nickname: String
   birthDate: DateTime
