@@ -7,7 +7,7 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 from auth1.forms import AuthAdminForm
 from auth1.sessions import Auth1SessionWorkflow
 from core import views
-from core.schema.views import CoreStrawberryView
+from core.schema.views import CoreAsyncStrawberryView
 from core.utils.debug import autologin
 from core.utils.logger_helper import gql_logger
 from django.conf import settings
@@ -23,8 +23,9 @@ from .features import Feature, is_enabled
 from .schema import schema, schema_auth
 from .views import app_root_view, metrics_view, root_view, test_open_telemetry
 
-strawberry_view = CoreStrawberryView.as_view(schema=schema)
-strawberry_auth_view = CoreStrawberryView.as_view(schema=schema_auth)
+# Async views: dataloaders need the event loop (see CoreAsyncStrawberryView).
+strawberry_view = CoreAsyncStrawberryView.as_view(schema=schema)
+strawberry_auth_view = CoreAsyncStrawberryView.as_view(schema=schema_auth)
 
 
 def trigger_error(request):
@@ -50,7 +51,10 @@ urls = [
     path('gql/config/', csrf_exempt(autologin(gql_logger(ratelimit(key='user_or_ip', rate='100/m', block=True)(strawberry_view))))),
     path('gql/config/auth/', csrf_exempt(gql_logger(ratelimit(key='ip', rate='30/m', block=True)(strawberry_auth_view)))),
     # GraphQL WebSocket subscriptions
-    path('gql/config/ws/', csrf_exempt(CoreStrawberryView.as_view(schema=schema))),
+    # Same async view + guard chain as the main endpoint. True WebSocket
+    # subscriptions additionally need channels/daphne wiring in asgi.py.
+    path('gql/config/ws/', csrf_exempt(autologin(gql_logger(ratelimit(key='user_or_ip', rate='100/m', block=True)(
+        CoreAsyncStrawberryView.as_view(schema=schema)))))),
 
     path('core/', include('core.urls')),
     path('pushnotif/', include('pushnotif.urls')),

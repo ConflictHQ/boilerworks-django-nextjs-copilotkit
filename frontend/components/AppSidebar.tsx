@@ -21,7 +21,6 @@ import {
 import {
   GalleryVerticalEndIcon,
   TerminalSquareIcon,
-  BotIcon,
   BookOpenIcon,
   Settings2Icon,
   TableIcon,
@@ -58,16 +57,6 @@ export function AppSidebar({ ssrUser, ...props }: AppSidebarProps) {
         { title: t("history"), url: "/playground/history" },
         { title: t("starred"), url: "/playground/starred" },
         { title: t("settings"), url: "/settings" },
-      ],
-    },
-    {
-      title: t("models"),
-      url: "/models",
-      icon: <BotIcon />,
-      items: [
-        { title: t("genesis"), url: "/models/genesis" },
-        { title: t("explorer"), url: "/models/explorer" },
-        { title: t("quantum"), url: "/models/quantum" },
       ],
     },
     {

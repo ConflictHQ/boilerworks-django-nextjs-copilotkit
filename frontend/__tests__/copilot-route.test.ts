@@ -69,6 +69,13 @@ describe("getCopilotBackendUrl", () => {
     expect(getCopilotBackendUrl()).toBe("https://agent.example.com/agui/");
   });
 
+  it("prefers API_ROOT_INTERNAL over NEXT_PUBLIC_API_ROOT for the server hop", () => {
+    delete process.env.COPILOT_AGUI_URL;
+    process.env.NEXT_PUBLIC_API_ROOT = "http://localhost:8000";
+    process.env.API_ROOT_INTERNAL = "http://boilerworks-local:8000";
+    expect(getCopilotBackendUrl()).toBe("http://boilerworks-local:8000/app/copilot/agui/");
+  });
+
   it("throws a configuration error when neither env var yields an origin", () => {
     delete process.env.COPILOT_AGUI_URL;
     delete process.env.NEXT_PUBLIC_API_ROOT;

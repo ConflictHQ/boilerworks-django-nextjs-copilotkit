@@ -4,7 +4,6 @@
 // --- Schema shapes ---
 
 export type UserProfile = {
-  guid: string;
   displayName: string | null;
 };
 

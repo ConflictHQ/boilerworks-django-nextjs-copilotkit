@@ -4,7 +4,11 @@ import { cookies } from "next/headers";
 import { fetchToken } from "@/lib/auth/fetch-token";
 import { makeCache } from "./cache";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_ROOT}/app/gql/config/`;
+// Server-side (RSC) client: prefer the in-network backend URL when set.
+// Inside the docker-compose ui container, `localhost:8000` is the container
+// itself — API_ROOT_INTERNAL (e.g. http://boilerworks-local:8000) reaches the
+// backend over the compose network. Browsers keep NEXT_PUBLIC_API_ROOT.
+const API_URL = `${process.env.API_ROOT_INTERNAL ?? process.env.NEXT_PUBLIC_API_ROOT}/app/gql/config/`;
 
 export const { getClient, query, PreloadQuery } = registerApolloClient(async () => {
   const cookieStore = await cookies();

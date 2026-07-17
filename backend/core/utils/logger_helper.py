@@ -1,5 +1,6 @@
 import json
 import logging
+from asyncio import iscoroutinefunction
 from functools import wraps
 
 from django.conf import settings
@@ -27,45 +28,56 @@ def dump_json(query):
     return dump
 
 
+def _log_request(args):
+    query = {}
+    if settings.DEBUG:
+        try:
+            query = json.loads(args[0].body)
+            dump = f'>>>---request---------->>> {query["operationName"]}  ------------------------\n'
+            variables = '\n      '.join(sorted([f'{n} = {v}' for n, v in query['variables'].items()]))
+            dump += f'  query: {query["operationName"]} \n    variables:\n      {variables}\n'
+            logger.warning(dump)
+        except Exception as e:
+            logger.warning('request error', e)
+    return query
+
+
+def _log_response(args, query, result):
+    if settings.DEBUG:
+        try:
+            response = json.loads(result.content)
+            dump = f'  ---response-----------  {query["operationName"]}  -------------------------\n'
+            if 'errors' in response:
+                dump += dump_json(response)
+                if hasattr(args[0], 'django_debug'):
+                    for e in args[0].django_debug.object.exceptions:
+                        dump += f'    {e.stack}\n'
+            else:
+                dump += '    response ok\n'
+            dump += f'<<<---end request-------<<< {query["operationName"]} --------------------\n'
+            logger.warning(dump)
+        except Exception as e:
+            logger.warning('request ', e)
+
+
 def gql_logger(view_func):
-    """
-    Temporal solution for login user.
-    """
-    """Mark a view function as being exempt from the CSRF view protection."""
+    """Log GraphQL request/response dumps in DEBUG.
 
-    # view_func.csrf_exempt = True would also work, but decorators are nicer
-    # if they don't have side effects, so return a new function.
-    def wrapped_view(*args, **kwargs):
-        query = {}
-        if settings.DEBUG:
-            try:
-                query = json.loads(args[0].body)
-                dump = f'>>>---request---------->>> {query["operationName"]}  ------------------------\n'
-                variables = '\n      '.join(sorted([f'{n} = {v}' for n, v in query['variables'].items()]))
-                dump += f'  query: {query["operationName"]} \n    variables:\n      {variables}\n'
-                logger.warning(dump)
-            except Exception as e:
-                logger.warning('request error', e)
-
-        result = view_func(*args, **kwargs)
-
-        if settings.DEBUG:
-            try:
-                response = json.loads(result.content)
-                dump = f'  ---response-----------  {query["operationName"]}  -------------------------\n'
-                if 'errors' in response:
-                    dump += dump_json(response)
-                    if hasattr(args[0], 'django_debug'):
-                        for e in args[0].django_debug.object.exceptions:
-                            dump += f'    {e.stack}\n'
-                else:
-                    dump += '    response ok\n'
-                dump += f'<<<---end request-------<<< {query["operationName"]} --------------------\n'
-                logger.warning(dump)
-            except Exception as e:
-                logger.warning('request ', e)
-
-        return result
+    Async-aware: the async view must be awaited before reading
+    ``result.content`` — logging an unawaited coroutine would silently
+    disable the response dumps."""
+    if iscoroutinefunction(view_func):
+        async def wrapped_view(*args, **kwargs):
+            query = _log_request(args)
+            result = await view_func(*args, **kwargs)
+            _log_response(args, query, result)
+            return result
+    else:
+        def wrapped_view(*args, **kwargs):
+            query = _log_request(args)
+            result = view_func(*args, **kwargs)
+            _log_response(args, query, result)
+            return result
 
     return wraps(view_func)(wrapped_view)
 

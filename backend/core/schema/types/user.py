@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
 
 import strawberry
 import strawberry_django
@@ -75,7 +74,6 @@ class UserSwitchType:
 
 @strawberry_django.type(Profile)
 class ProfileType:
-    guid: UUID
     display_name: Optional[str]
     nickname: Optional[str]
     birth_date: Optional[datetime]
