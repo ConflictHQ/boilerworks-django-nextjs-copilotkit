@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 względem tego tła.",
       "customAccentFaintLighter": "{ratio}:1 względem tego tła; wymagane {min}:1. Wybierz jaśniejszy kolor.",
       "customAccentFaintDarker": "{ratio}:1 względem tego tła; wymagane {min}:1. Wybierz ciemniejszy kolor."
+    },
+    "chat": {
+      "conversation": "Rozmowa",
+      "roles": {
+        "user": "Ty",
+        "assistant": "Asystent",
+        "system": "System",
+        "developer": "Programista",
+        "tool": "Narzędzie"
+      },
+      "messageFrom": "Wiadomość od {speaker}",
+      "thinking": "Myśli",
+      "writing": "Nadal pisze",
+      "jumpToLatest": "Przejdź do najnowszej",
+      "runFailed": "Uruchomienie nie powiodło się",
+      "retry": "Ponów",
+      "composer": "Wiadomość",
+      "composerHint": "Enter, aby wysłać, Shift+Enter, aby przejść do nowej linii.",
+      "send": "Wyślij",
+      "stop": "Zatrzymaj",
+      "toolCall": "Wywołanie narzędzia {name}",
+      "toolStatus": {
+        "streaming": "przygotowywanie",
+        "running": "w toku",
+        "complete": "gotowe",
+        "failed": "błąd",
+        "cancelled": "anulowano",
+        "approval": "wymaga zatwierdzenia"
+      },
+      "details": "Szczegóły",
+      "arguments": "Argumenty",
+      "noArguments": "Brak argumentów",
+      "result": "Wynik",
+      "toolError": "Błąd",
+      "runStatus": {
+        "idle": "bezczynny",
+        "running": "w toku",
+        "finished": "zakończono",
+        "interrupted": "czeka na Ciebie",
+        "cancelled": "zatrzymano",
+        "error": "błąd"
+      }
+    },
+    "agent": {
+      "open": "Otwórz: {title}",
+      "close": "Zamknij",
+      "unread": "Nieprzeczytane: {count}",
+      "newConversation": "Nowa rozmowa",
+      "shortcut": "Skrót {keys}",
+      "expand": "Rozwiń",
+      "restore": "Przywróć",
+      "waitingOnYou": "Odpowiedz na kartę powyżej, aby kontynuować."
+    },
+    "rail": {
+      "show": "Pokaż: {label}",
+      "hide": "Ukryj: {label}",
+      "resize": "Zmień rozmiar: {label}",
+      "expand": "Rozwiń: {label}",
+      "restore": "Przywróć: {label}"
     }
   },
   "copilot": {

@@ -23,7 +23,7 @@ export type WorkflowTransitionApprovalProps = {
 
 /**
  * Human-in-the-loop approve/deny surface for a workflow-transition confirmation.
- * Presentational only — the CopilotKit `renderAndWaitForResponse` glue (which
+ * Presentational only — the human-in-the-loop tool glue (which
  * calls `respond({ confirmed })`) lives in `CopilotToolRenders`.
  */
 export function WorkflowTransitionApproval({

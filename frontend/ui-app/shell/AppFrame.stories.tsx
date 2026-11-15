@@ -1,4 +1,10 @@
 import { PageHeader } from "@calliopelabs/ui";
+import {
+  CalliopeAgent,
+  CalliopeAgentProvider,
+  createMockAgent,
+  textEvents,
+} from "@calliopelabs/ui/agent";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { BadgeCheckIcon, BellIcon } from "lucide-react";
 
@@ -58,5 +64,33 @@ export const LongName: Story = {
       name: "Maximiliana Alexandrina von Hohenzollern-Sigmaringen",
       email: "maximiliana.alexandrina@a-very-long-company-domain.example.com",
     },
+  },
+};
+
+/**
+ * With the assistant in the right rail (the copilot's CalliopeAgent), open: a
+ * recorded agent answers here; the app's runs go to the Django agent. `]`
+ * folds the rail; below `md` it opens as a drawer from the top bar.
+ */
+export const WithAssistant: Story = {
+  render: function WithAssistant(args) {
+    const agent = createMockAgent({
+      turns: [textEvents("a1", "I can draft forms and move records through their workflows.")],
+    });
+    return (
+      <CalliopeAgentProvider agent={agent}>
+        <div className="h-[640px]">
+          <AppFrame
+            {...args}
+            rightRail={<CalliopeAgent mode="rail" title="Assistant" defaultOpen />}
+            rightRailLabel="Assistant"
+          >
+            <div className="p-6">
+              <PageHeader title="Dashboard" description="What changed since you last looked." />
+            </div>
+          </AppFrame>
+        </div>
+      </CalliopeAgentProvider>
+    );
   },
 };

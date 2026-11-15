@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 auf diesem Hintergrund.",
       "customAccentFaintLighter": "{ratio}:1 auf diesem Hintergrund; nötig sind {min}:1. Versuchen Sie eine hellere Farbe.",
       "customAccentFaintDarker": "{ratio}:1 auf diesem Hintergrund; nötig sind {min}:1. Versuchen Sie eine dunklere Farbe."
+    },
+    "chat": {
+      "conversation": "Unterhaltung",
+      "roles": {
+        "user": "Sie",
+        "assistant": "Assistent",
+        "system": "System",
+        "developer": "Entwickler",
+        "tool": "Werkzeug"
+      },
+      "messageFrom": "Nachricht von {speaker}",
+      "thinking": "Denkt nach",
+      "writing": "Schreibt noch",
+      "jumpToLatest": "Zur neuesten",
+      "runFailed": "Der Lauf ist fehlgeschlagen",
+      "retry": "Erneut versuchen",
+      "composer": "Nachricht",
+      "composerHint": "Eingabe zum Senden, Umschalt+Eingabe für eine neue Zeile.",
+      "send": "Senden",
+      "stop": "Stoppen",
+      "toolCall": "Werkzeugaufruf {name}",
+      "toolStatus": {
+        "streaming": "wird vorbereitet",
+        "running": "läuft",
+        "complete": "fertig",
+        "failed": "fehlgeschlagen",
+        "cancelled": "abgebrochen",
+        "approval": "braucht Freigabe"
+      },
+      "details": "Details",
+      "arguments": "Argumente",
+      "noArguments": "Keine Argumente",
+      "result": "Ergebnis",
+      "toolError": "Fehler",
+      "runStatus": {
+        "idle": "bereit",
+        "running": "läuft",
+        "finished": "fertig",
+        "interrupted": "wartet auf Sie",
+        "cancelled": "gestoppt",
+        "error": "fehlgeschlagen"
+      }
+    },
+    "agent": {
+      "open": "{title} öffnen",
+      "close": "Schließen",
+      "unread": "{count} ungelesen",
+      "newConversation": "Neue Unterhaltung",
+      "shortcut": "Tastenkürzel {keys}",
+      "expand": "Erweitern",
+      "restore": "Wiederherstellen",
+      "waitingOnYou": "Beantworten Sie die Karte oben, um fortzufahren."
+    },
+    "rail": {
+      "show": "{label} einblenden",
+      "hide": "{label} ausblenden",
+      "resize": "Größe von {label} ändern",
+      "expand": "{label} erweitern",
+      "restore": "{label} wiederherstellen"
     }
   },
   "copilot": {

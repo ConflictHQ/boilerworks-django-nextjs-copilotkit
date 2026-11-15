@@ -96,9 +96,8 @@ describe("getCopilotBackendUrl", () => {
 const mocks = vi.hoisted(() => ({
   httpAgent: vi.fn(),
   copilotRuntime: vi.fn(),
-  emptyAdapter: vi.fn(),
-  endpoint: vi.fn(),
-  handleRequest: vi.fn(async () => new Response("ok")),
+  handlerOptions: vi.fn(),
+  handle: vi.fn(async () => new Response("ok")),
 }));
 
 vi.mock("@ag-ui/client", () => ({
@@ -109,20 +108,15 @@ vi.mock("@ag-ui/client", () => ({
   },
 }));
 
-vi.mock("@copilotkit/runtime", () => ({
+vi.mock("@copilotkit/runtime/v2", () => ({
   CopilotRuntime: class {
     constructor(config: unknown) {
       mocks.copilotRuntime(config);
     }
   },
-  ExperimentalEmptyAdapter: class {
-    constructor() {
-      mocks.emptyAdapter();
-    }
-  },
-  copilotRuntimeNextJSAppRouterEndpoint: (options: unknown) => {
-    mocks.endpoint(options);
-    return { handleRequest: mocks.handleRequest };
+  createCopilotRuntimeHandler: (options: unknown) => {
+    mocks.handlerOptions(options);
+    return mocks.handle;
   },
 }));
 
@@ -148,12 +142,14 @@ describe("POST /api/copilotkit", () => {
       url: "http://localhost:8000/app/copilot/agui/",
       headers: { Cookie: "sessionid=s1; csrftoken=tok", "X-CSRFToken": "tok" },
     });
-    // The runtime is wired with an agents map and delegated to the App Router endpoint.
-    expect(mocks.copilotRuntime).toHaveBeenCalledTimes(1);
-    expect(mocks.endpoint).toHaveBeenCalledWith(
-      expect.objectContaining({ endpoint: "/api/copilotkit" })
+    // The runtime is wired with the agent under its name and served from one route.
+    expect(mocks.copilotRuntime).toHaveBeenCalledWith({
+      agents: { boilerworks_agent: expect.anything() },
+    });
+    expect(mocks.handlerOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ basePath: "/api/copilotkit", mode: "single-route" })
     );
-    expect(mocks.handleRequest).toHaveBeenCalledTimes(1);
+    expect(mocks.handle).toHaveBeenCalledWith(req);
     expect(res).toBeInstanceOf(Response);
   });
 

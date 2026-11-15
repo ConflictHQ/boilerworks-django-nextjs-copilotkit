@@ -27,6 +27,11 @@ export interface AppFrameProps {
   onSignOut: () => void;
   /** Names the last crumb when a page sits below its sidebar row. */
   pageLabel?: (segment: string) => string;
+  /** The right rail: the assistant, when there is one (components/AppChrome.tsx). */
+  rightRail?: ReactNode;
+  rightRailLabel?: string;
+  /** `]` toggles the right rail. */
+  onToggleRightRail?: () => void;
   children: ReactNode;
 }
 
@@ -37,7 +42,8 @@ const Mark = () => <GalleryVerticalEndIcon aria-hidden className="size-5" />;
 
 /**
  * The signed-in frame: the library's AppShell with the product's sidebar,
- * brand mark and user menu, and the breadcrumb above the content. Pure: the
+ * brand mark and user menu, the breadcrumb above the content, and the
+ * assistant's rail when the caller gives one. Pure: the
  * person, the navigation and sign-out come from the caller
  * (components/AppChrome.tsx), so the catalog renders it with fixtures.
  */
@@ -48,15 +54,22 @@ export function AppFrame({
   menu,
   onSignOut,
   pageLabel = capitalize,
+  rightRail,
+  rightRailLabel,
+  onToggleRightRail,
   children,
 }: AppFrameProps) {
   const { product } = useAppearance();
   const [collapsed, setCollapsed] = useRailState(`${product.id}.shell.main`);
   const crumbs = crumbsFor(nav, pathname, pageLabel);
+  const rail: { rightRail: ReactNode; rightRailLabel: string } | { rightRail?: undefined } =
+    rightRail ? { rightRail, rightRailLabel: rightRailLabel ?? "" } : {};
 
   return (
     <AppShell
       onToggleSidebar={() => setCollapsed(!collapsed)}
+      {...rail}
+      onToggleRightRail={onToggleRightRail}
       header={crumbs.length > 0 ? <Breadcrumbs crumbs={crumbs} /> : undefined}
       sidebar={
         <Sidebar
