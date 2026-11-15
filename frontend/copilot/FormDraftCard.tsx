@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowUpRightIcon, FileTextIcon, Loader2Icon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/ui-app/primitives/badge";
+import { Button } from "@calliopelabs/ui";
 
 export type DraftField = { name: string; label?: string; type?: string };
 
