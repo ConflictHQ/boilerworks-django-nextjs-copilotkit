@@ -10,6 +10,7 @@
  */
 import { defineProduct, type NavModel } from "@calliopelabs/ui";
 import {
+  BarChart3Icon,
   BookOpenIcon,
   ClipboardListIcon,
   HistoryIcon,
@@ -40,6 +41,7 @@ export const NAV: NavModel = [
       {
         functions: [
           { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
+          { key: "analytics", label: "Analytics", href: "/analytics", icon: BarChart3Icon },
         ],
       },
     ],
