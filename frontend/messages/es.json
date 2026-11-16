@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 sobre este fondo.",
       "customAccentFaintLighter": "{ratio}:1 sobre este fondo; necesita {min}:1. Prueba un color más claro.",
       "customAccentFaintDarker": "{ratio}:1 sobre este fondo; necesita {min}:1. Prueba un color más oscuro."
+    },
+    "chat": {
+      "conversation": "Conversación",
+      "roles": {
+        "user": "Tú",
+        "assistant": "Asistente",
+        "system": "Sistema",
+        "developer": "Desarrollador",
+        "tool": "Herramienta"
+      },
+      "messageFrom": "Mensaje de {speaker}",
+      "thinking": "Pensando",
+      "writing": "Sigue escribiendo",
+      "jumpToLatest": "Ir al más reciente",
+      "runFailed": "La ejecución falló",
+      "retry": "Reintentar",
+      "composer": "Mensaje",
+      "composerHint": "Intro para enviar, Mayús+Intro para una nueva línea.",
+      "send": "Enviar",
+      "stop": "Detener",
+      "toolCall": "Llamada a herramienta {name}",
+      "toolStatus": {
+        "streaming": "preparando",
+        "running": "en curso",
+        "complete": "hecho",
+        "failed": "falló",
+        "cancelled": "cancelado",
+        "approval": "requiere aprobación"
+      },
+      "details": "Detalles",
+      "arguments": "Argumentos",
+      "noArguments": "Sin argumentos",
+      "result": "Resultado",
+      "toolError": "Error",
+      "runStatus": {
+        "idle": "inactivo",
+        "running": "en curso",
+        "finished": "terminado",
+        "interrupted": "esperándote",
+        "cancelled": "detenido",
+        "error": "falló"
+      }
+    },
+    "agent": {
+      "open": "Abrir {title}",
+      "close": "Cerrar",
+      "unread": "{count} sin leer",
+      "newConversation": "Nueva conversación",
+      "shortcut": "Atajo {keys}",
+      "expand": "Ampliar",
+      "restore": "Restaurar",
+      "waitingOnYou": "Responde la tarjeta de arriba para continuar."
+    },
+    "rail": {
+      "show": "Mostrar {label}",
+      "hide": "Ocultar {label}",
+      "resize": "Cambiar el tamaño de {label}",
+      "expand": "Ampliar {label}",
+      "restore": "Restaurar {label}"
     }
   },
   "copilot": {

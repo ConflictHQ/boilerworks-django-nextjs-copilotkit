@@ -22,7 +22,7 @@ An agent given this document and a business requirement should be able to genera
 | Admin | Custom dark theme, BaseCoreAdmin (import/export, tracking fields), DJDT |
 | Rule engine | Conditions + Actions + RuleProviderMixin, Celery-backed evaluation |
 | State machine | DFA model, cron-scheduled transitions via Celery beat |
-| Copilot | Pydantic AI agent over AG-UI (`copilot` app), CopilotKit UI in the frontend, permission-checked tools over the forms + workflow engines |
+| Copilot | Pydantic AI agent over AG-UI (`copilot` app), `CalliopeAgent` over CopilotKit's headless core in the frontend, permission-checked tools over the forms + workflow engines |
 | Infra | Docker Compose: postgres, redis, opensearch, minio (S3), celery-worker, celery-beat, mailpit, ui |
 | CI | GitHub Actions: lint (pre-commit) + tests (postgres + redis services) |
 | Seed | `make seed`, numbered fixtures, `--flush` flag |

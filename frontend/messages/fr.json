@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 sur ce fond.",
       "customAccentFaintLighter": "{ratio}:1 sur ce fond ; il faut {min}:1. Essayez une couleur plus claire.",
       "customAccentFaintDarker": "{ratio}:1 sur ce fond ; il faut {min}:1. Essayez une couleur plus foncée."
+    },
+    "chat": {
+      "conversation": "Conversation",
+      "roles": {
+        "user": "Vous",
+        "assistant": "Assistant",
+        "system": "Système",
+        "developer": "Développeur",
+        "tool": "Outil"
+      },
+      "messageFrom": "Message de {speaker}",
+      "thinking": "Réflexion",
+      "writing": "Rédaction en cours",
+      "jumpToLatest": "Aller au plus récent",
+      "runFailed": "L'exécution a échoué",
+      "retry": "Réessayer",
+      "composer": "Message",
+      "composerHint": "Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne.",
+      "send": "Envoyer",
+      "stop": "Arrêter",
+      "toolCall": "Appel d'outil {name}",
+      "toolStatus": {
+        "streaming": "préparation",
+        "running": "en cours",
+        "complete": "terminé",
+        "failed": "échec",
+        "cancelled": "annulé",
+        "approval": "à approuver"
+      },
+      "details": "Détails",
+      "arguments": "Arguments",
+      "noArguments": "Aucun argument",
+      "result": "Résultat",
+      "toolError": "Erreur",
+      "runStatus": {
+        "idle": "inactif",
+        "running": "en cours",
+        "finished": "terminé",
+        "interrupted": "vous attend",
+        "cancelled": "arrêté",
+        "error": "échec"
+      }
+    },
+    "agent": {
+      "open": "Ouvrir {title}",
+      "close": "Fermer",
+      "unread": "{count} non lus",
+      "newConversation": "Nouvelle conversation",
+      "shortcut": "Raccourci {keys}",
+      "expand": "Agrandir",
+      "restore": "Restaurer",
+      "waitingOnYou": "Répondez à la carte ci-dessus pour continuer."
+    },
+    "rail": {
+      "show": "Afficher {label}",
+      "hide": "Masquer {label}",
+      "resize": "Redimensionner {label}",
+      "expand": "Agrandir {label}",
+      "restore": "Restaurer {label}"
     }
   },
   "copilot": {

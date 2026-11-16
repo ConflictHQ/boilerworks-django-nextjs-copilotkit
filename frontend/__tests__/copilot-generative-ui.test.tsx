@@ -3,27 +3,34 @@
 //     interactive (pending) and resolved (approved / denied) states,
 //   - the drafted-form card (field summary + edit link, plus the drafting state)
 //     and its destructive error card, and
-//   - the CopilotToolRenders wiring: the renamed `confirm_workflow_transition`
-//     frontend tool (parameter schema, args-driven card, approved/denied respond
-//     payloads) and the draft render's created / error result handling.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+//   - the agent wiring: the `confirm_workflow_transition` frontend tool
+//     (parameter schema, args-driven card, approved/denied answers to the run)
+//     and the draft renderer's created / error result handling, inside the
+//     library's conversation over a recorded agent.
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  AgentChat,
+  CalliopeAgentProvider,
+  createMockAgent,
+  toolCallEvents,
+  useAgentController,
+  type MockTurn,
+} from "@calliopelabs/ui/agent";
+import { UIProvider } from "@calliopelabs/ui";
 import { NextIntlClientProvider } from "next-intl";
 import enMessages from "@/messages/en.json";
 import { WorkflowTransitionApproval } from "@/copilot/WorkflowTransitionApproval";
 import { FormDraftCard } from "@/copilot/FormDraftCard";
 import { FormDraftErrorCard } from "@/copilot/FormDraftErrorCard";
 import { COPILOT_TOOL_CONFIRM_TRANSITION, COPILOT_TOOL_DRAFT_FORM } from "@/copilot/config";
-
-// Capture every useCopilotAction registration so the render / renderAndWaitForResponse
-// closures can be exercised directly, without a live CopilotKit provider.
-const { registered } = vi.hoisted(() => ({ registered: [] as unknown[] }));
-vi.mock("@copilotkit/react-core", () => ({
-  useCopilotAction: (action: unknown) => {
-    registered.push(action);
-  },
-}));
+import {
+  CopilotToolRenders,
+  DraftFormRender,
+  confirmTransitionTool,
+  copilotRenderers,
+} from "@/copilot/CopilotToolRenders";
 
 // next/link needs no router in these presentational tests — render a plain <a>.
 vi.mock("next/link", () => ({
@@ -161,215 +168,203 @@ describe("FormDraftErrorCard (generative UI)", () => {
   });
 });
 
-// --- CopilotToolRenders wiring ---------------------------------------------
+// --- agent wiring ------------------------------------------------------------
 
-type CapturedParameter = {
-  name: string;
-  type?: string;
-  required?: boolean;
-  description?: string;
-};
-
-type CapturedAction = {
-  name: string;
-  available?: string;
-  description?: string;
-  parameters?: CapturedParameter[];
-  render?: (props: {
-    status: string;
-    args: Record<string, unknown>;
-    result?: unknown;
-  }) => ReactElement;
-  renderAndWaitForResponse?: (props: {
-    status: string;
-    args: Record<string, unknown>;
-    respond?: (result: unknown) => void;
-  }) => ReactElement;
-};
-
-function getAction(name: string): CapturedAction {
-  const found = registered.find((a) => (a as CapturedAction).name === name);
-  if (!found) throw new Error(`useCopilotAction was not registered for "${name}"`);
-  return found as CapturedAction;
+/** The conversation as the rail draws it, over a recorded agent, with the copilot's tools. */
+function Conversation({
+  turns,
+  onRequest,
+}: {
+  turns: MockTurn[];
+  onRequest?: (i: unknown) => void;
+}) {
+  const agent = createMockAgent({ turns, delay: 0, ...(onRequest ? { onRequest } : {}) });
+  return (
+    <NextIntlClientProvider locale="en" messages={enMessages}>
+      <UIProvider>
+        <CalliopeAgentProvider agent={agent}>
+          <CopilotToolRenders />
+          <Send />
+          <AgentChat renderers={copilotRenderers} />
+        </CalliopeAgentProvider>
+      </UIProvider>
+    </NextIntlClientProvider>
+  );
 }
 
-describe("CopilotToolRenders", () => {
-  beforeEach(async () => {
-    registered.length = 0;
-    const { CopilotToolRenders } = await import("@/copilot/CopilotToolRenders");
-    render(<CopilotToolRenders />);
+/** Asks once, as the person would. */
+function Send() {
+  const controller = useAgentController();
+  return (
+    <button type="button" onClick={() => void controller?.send("go")}>
+      ask
+    </button>
+  );
+}
+
+describe("confirm_workflow_transition (frontend HITL tool)", () => {
+  it("is defined under the frontend tool name with the agreed parameter schema", () => {
+    expect(confirmTransitionTool.name).toBe("confirm_workflow_transition");
+    expect(confirmTransitionTool.description).toMatch(/approve or deny/i);
+    expect(confirmTransitionTool.handler).toBeUndefined();
+    const schema = confirmTransitionTool.parameters as {
+      properties: Record<string, { type: string }>;
+      required: string[];
+    };
+    expect(Object.keys(schema.properties)).toEqual([
+      "instance_ref",
+      "workflow_name",
+      "from_state_label",
+      "to_state_label",
+      "label",
+      "message",
+    ]);
+    expect(Object.values(schema.properties).every((p) => p.type === "string")).toBe(true);
+    expect(schema.required).toEqual(["instance_ref"]);
   });
 
-  describe("confirm_workflow_transition (frontend HITL tool)", () => {
-    it("registers under the frontend tool name with the agreed parameter schema", () => {
-      const action = getAction(COPILOT_TOOL_CONFIRM_TRANSITION);
-
-      expect(action.name).toBe("confirm_workflow_transition");
-      expect(action.description).toMatch(/approve or deny/i);
-
-      const params = action.parameters ?? [];
-      expect(params.map((p) => p.name)).toEqual([
-        "instance_ref",
-        "workflow_name",
-        "from_state_label",
-        "to_state_label",
-        "label",
-        "message",
-      ]);
-      expect(params.every((p) => p.type === "string")).toBe(true);
-
-      const required = Object.fromEntries(params.map((p) => [p.name, p.required]));
-      expect(required.instance_ref).toBe(true);
-      expect(required.workflow_name).toBe(false);
-      expect(required.from_state_label).toBe(false);
-      expect(required.to_state_label).toBe(false);
-      expect(required.label).toBe(false);
-      expect(required.message).toBe(false);
-    });
-
-    it("renders the approval card from args and responds { approved: true } on approve", () => {
-      const action = getAction(COPILOT_TOOL_CONFIRM_TRANSITION);
-      const respond = vi.fn();
-
-      renderIntl(
-        action.renderAndWaitForResponse!({
-          status: "executing",
-          args: {
-            instance_ref: "WI-1",
-            workflow_name: "Invoice",
-            from_state_label: "Draft",
-            to_state_label: "In review",
-          },
-          respond,
-        })
+  it.each([
+    ["Approve", true],
+    ["Deny", false],
+  ])(
+    "is offered to the agent, draws the card from args and answers %s",
+    async (button, approved) => {
+      const requests: {
+        tools: { name: string }[];
+        messages: { role: string; content?: unknown }[];
+      }[] = [];
+      render(
+        <Conversation
+          onRequest={(input) => requests.push(input as never)}
+          turns={[
+            toolCallEvents("call-1", COPILOT_TOOL_CONFIRM_TRANSITION, {
+              instance_ref: "WI-1",
+              workflow_name: "Invoice",
+              from_state_label: "Draft",
+              to_state_label: "In review",
+            }),
+            [],
+          ]}
+        />
       );
+      fireEvent.click(screen.getByRole("button", { name: "ask" }));
 
+      expect(await screen.findByText("on Invoice")).toBeTruthy();
       expect(screen.getByText("Draft")).toBeTruthy();
       expect(screen.getByText("In review")).toBeTruthy();
-      expect(screen.getByText("on Invoice")).toBeTruthy();
+      expect(requests[0].tools.map((t) => t.name)).toContain(COPILOT_TOOL_CONFIRM_TRANSITION);
+      // The draft renderer is not a tool: its name never reaches the agent's tool list.
+      expect(requests[0].tools.map((t) => t.name)).not.toContain(COPILOT_TOOL_DRAFT_FORM);
 
-      fireEvent.click(screen.getByRole("button", { name: "Approve" }));
-      expect(respond).toHaveBeenCalledWith({ approved: true });
-    });
+      fireEvent.click(screen.getByRole("button", { name: button }));
+      await waitFor(() => expect(requests).toHaveLength(2));
+      const answer = requests[1].messages.find((m) => m.role === "tool");
+      expect(JSON.parse(String(answer?.content))).toEqual({ approved });
+    }
+  );
+});
 
-    it("responds { approved: false } on deny", () => {
-      const action = getAction(COPILOT_TOOL_CONFIRM_TRANSITION);
-      const respond = vi.fn();
+describe("draft_form_definition (render-only generative UI)", () => {
+  const args = {
+    name: "Client intake",
+    slug: "client-intake",
+    schema: {
+      type: "object",
+      properties: {
+        email: { type: "string", title: "Email" },
+        age: { type: "integer" },
+      },
+    },
+  };
 
-      renderIntl(
-        action.renderAndWaitForResponse!({
-          status: "executing",
-          args: { instance_ref: "WI-1", from_state_label: "Draft", to_state_label: "In review" },
-          respond,
-        })
-      );
+  it("while streaming, draws the drafting card from the schema properties in args", () => {
+    renderIntl(
+      <DraftFormRender
+        call={{ id: "c", name: COPILOT_TOOL_DRAFT_FORM, args: "", status: "streaming" }}
+        args={args}
+        result={undefined}
+        agent={undefined as never}
+      />
+    );
 
-      fireEvent.click(screen.getByRole("button", { name: "Deny" }));
-      expect(respond).toHaveBeenCalledWith({ approved: false });
-    });
+    expect(screen.getByText("Client intake")).toBeTruthy();
+    expect(screen.getByText("Drafting…")).toBeTruthy();
+    expect(screen.getByText("Email")).toBeTruthy();
+    expect(screen.queryByRole("link")).toBeNull();
   });
 
-  describe("draft_form_definition (render-only generative UI)", () => {
-    it("is registered render-only via available: disabled", () => {
-      const action = getAction(COPILOT_TOOL_DRAFT_FORM);
-      expect(action.available).toBe("disabled");
-      expect(action.parameters).toBeUndefined();
-    });
-
-    it("while streaming, draws the drafting card from the schema properties in args", () => {
-      const action = getAction(COPILOT_TOOL_DRAFT_FORM);
-
-      renderIntl(
-        action.render!({
-          status: "inProgress",
-          args: {
-            name: "Client intake",
-            slug: "client-intake",
-            schema: { type: "object", properties: { email: { type: "string", title: "Email" } } },
-          },
-        })
-      );
-
-      expect(screen.getByText("Client intake")).toBeTruthy();
-      expect(screen.getByText("Drafting…")).toBeTruthy();
-      expect(screen.getByText("Email")).toBeTruthy();
-      expect(screen.queryByRole("link")).toBeNull();
-    });
-
-    it("on created, keeps the args field list and shows slug/version from the result", () => {
-      const action = getAction(COPILOT_TOOL_DRAFT_FORM);
-
-      renderIntl(
-        action.render!({
-          status: "complete",
-          args: {
-            name: "Client intake",
-            slug: "client-intake",
-            schema: {
-              type: "object",
-              properties: {
-                email: { type: "string", title: "Email" },
-                age: { type: "integer" },
-              },
+  it("on created, keeps the args field list and shows slug/version from the result", async () => {
+    render(
+      <Conversation
+        turns={[
+          toolCallEvents("call-2", COPILOT_TOOL_DRAFT_FORM, args, {
+            result: {
+              status: "created",
+              slug: "client-intake",
+              version: 2,
+              name: "Client intake",
+              form_status: "draft",
             },
-          },
-          result: {
-            status: "created",
-            slug: "client-intake",
-            version: 2,
-            name: "Client intake",
-            form_status: "draft",
-          },
-        })
-      );
+          }),
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "ask" }));
 
-      expect(screen.getByText("Client intake")).toBeTruthy();
-      expect(screen.getByText("2 fields")).toBeTruthy();
-      expect(screen.getByText("Email")).toBeTruthy();
-      expect(screen.getByText("Saved as client-intake · v2")).toBeTruthy();
+    expect(await screen.findByText("Saved as client-intake · v2")).toBeTruthy();
+    expect(screen.getByText("Client intake")).toBeTruthy();
+    expect(screen.getByText("2 fields")).toBeTruthy();
+    expect(screen.getByText("Email")).toBeTruthy();
+    const link = screen.getByRole("link", { name: /Open in Form Engine/ });
+    expect(link.getAttribute("href")).toBe("/forms/client-intake");
+  });
 
-      const link = screen.getByRole("link", { name: /Open in Form Engine/ });
-      expect(link.getAttribute("href")).toBe("/forms/client-intake");
-    });
+  it("on permission_denied, renders the error card with the message and no link", async () => {
+    render(
+      <Conversation
+        turns={[
+          toolCallEvents(
+            "call-3",
+            COPILOT_TOOL_DRAFT_FORM,
+            { name: "X", slug: "x", schema: {} },
+            {
+              result: {
+                status: "permission_denied",
+                message: "You do not have permission to create form definitions.",
+              },
+            }
+          ),
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "ask" }));
 
-    it("on permission_denied, renders the error card with the message and no link", () => {
-      const action = getAction(COPILOT_TOOL_DRAFT_FORM);
+    expect(await screen.findByText("Couldn't draft form")).toBeTruthy();
+    expect(screen.getByText("You do not have permission to create form definitions.")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /Open in Form Engine/ })).toBeNull();
+  });
 
-      renderIntl(
-        action.render!({
-          status: "complete",
-          args: { name: "X", slug: "x", schema: {} },
-          result: {
-            status: "permission_denied",
-            message: "You do not have permission to create form definitions.",
-          },
-        })
-      );
+  it("on invalid_schema, lists the validation errors", async () => {
+    render(
+      <Conversation
+        turns={[
+          toolCallEvents(
+            "call-4",
+            COPILOT_TOOL_DRAFT_FORM,
+            { name: "X", slug: "x", schema: {} },
+            {
+              result: {
+                status: "invalid_schema",
+                errors: ["'type' is required", "properties must be an object"],
+              },
+            }
+          ),
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByRole("button", { name: "ask" }));
 
-      expect(screen.getByText("Couldn't draft form")).toBeTruthy();
-      expect(
-        screen.getByText("You do not have permission to create form definitions.")
-      ).toBeTruthy();
-      expect(screen.queryByRole("link")).toBeNull();
-    });
-
-    it("on invalid_schema, lists the validation errors", () => {
-      const action = getAction(COPILOT_TOOL_DRAFT_FORM);
-
-      renderIntl(
-        action.render!({
-          status: "complete",
-          args: { name: "X", slug: "x", schema: {} },
-          result: {
-            status: "invalid_schema",
-            errors: ["'type' is required", "properties must be an object"],
-          },
-        })
-      );
-
-      expect(screen.getByText("Couldn't draft form")).toBeTruthy();
-      expect(screen.getByText("'type' is required")).toBeTruthy();
-      expect(screen.getByText("properties must be an object")).toBeTruthy();
-    });
+    expect(await screen.findByText("'type' is required")).toBeTruthy();
+    expect(screen.getByText("properties must be an object")).toBeTruthy();
   });
 });

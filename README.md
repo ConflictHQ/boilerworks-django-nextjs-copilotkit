@@ -12,7 +12,7 @@ See [`bootstrap.md`](bootstrap.md) for conventions, patterns, and how to add new
 |---|---|
 | Backend | Django 6, Strawberry GraphQL, DRF, Celery, Postgres, Redis, OpenSearch |
 | Frontend | Next.js 16 (App Router), Apollo Client, TypeScript, Tailwind CSS, `@calliopelabs/ui`, shadcn/ui |
-| Copilot | CopilotKit (React UI) + Pydantic AI agent in Django over the AG-UI protocol |
+| Copilot | `CalliopeAgent` over CopilotKit's headless core + Pydantic AI agent in Django over the AG-UI protocol |
 | Infra | Docker Compose — all services containerised |
 
 ---
@@ -20,11 +20,11 @@ See [`bootstrap.md`](bootstrap.md) for conventions, patterns, and how to add new
 ## Features
 
 ### AI Copilot
-- **CopilotKit** chat sidebar in the Next.js app, restyled to shadcn/Tailwind
+- **CalliopeAgent** (`@calliopelabs/ui/agent`) in the shell's right rail, over CopilotKit's headless core and a self-hosted runtime
 - Agent lives **in the Django process** (Pydantic AI over the AG-UI protocol) — direct ORM access, no separate agent service
 - **Session-auth end to end**: the copilot endpoint sits behind the same httpOnly-cookie session auth as GraphQL; every tool re-checks group permissions, so the agent can only do what the logged-in user can do
 - Tools wired to the engines below: draft form definitions (forms engine), inspect states and execute transitions (workflow engine) — transitions are **human-in-the-loop** (approve/deny in the UI before anything runs)
-- Generative UI: tool results render as components, with page context via `useCopilotReadable`
+- Generative UI: tool results render as components, with page context via `useAgentReadable`
 - Feature-flagged and additive — without an `ANTHROPIC_API_KEY` the template runs as plain django-nextjs
 
 ### Forms Engine

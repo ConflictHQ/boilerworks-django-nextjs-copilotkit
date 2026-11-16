@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 su questo sfondo.",
       "customAccentFaintLighter": "{ratio}:1 su questo sfondo; serve {min}:1. Prova un colore più chiaro.",
       "customAccentFaintDarker": "{ratio}:1 su questo sfondo; serve {min}:1. Prova un colore più scuro."
+    },
+    "chat": {
+      "conversation": "Conversazione",
+      "roles": {
+        "user": "Tu",
+        "assistant": "Assistente",
+        "system": "Sistema",
+        "developer": "Sviluppatore",
+        "tool": "Strumento"
+      },
+      "messageFrom": "Messaggio da {speaker}",
+      "thinking": "Sta pensando",
+      "writing": "Sta ancora scrivendo",
+      "jumpToLatest": "Vai al più recente",
+      "runFailed": "L'esecuzione non è riuscita",
+      "retry": "Riprova",
+      "composer": "Messaggio",
+      "composerHint": "Invio per inviare, Maiusc+Invio per andare a capo.",
+      "send": "Invia",
+      "stop": "Interrompi",
+      "toolCall": "Chiamata dello strumento {name}",
+      "toolStatus": {
+        "streaming": "in preparazione",
+        "running": "in corso",
+        "complete": "fatto",
+        "failed": "non riuscito",
+        "cancelled": "annullato",
+        "approval": "da approvare"
+      },
+      "details": "Dettagli",
+      "arguments": "Argomenti",
+      "noArguments": "Nessun argomento",
+      "result": "Risultato",
+      "toolError": "Errore",
+      "runStatus": {
+        "idle": "inattivo",
+        "running": "in corso",
+        "finished": "completato",
+        "interrupted": "in attesa di te",
+        "cancelled": "interrotto",
+        "error": "non riuscito"
+      }
+    },
+    "agent": {
+      "open": "Apri {title}",
+      "close": "Chiudi",
+      "unread": "{count} non letti",
+      "newConversation": "Nuova conversazione",
+      "shortcut": "Scorciatoia {keys}",
+      "expand": "Espandi",
+      "restore": "Ripristina",
+      "waitingOnYou": "Rispondi alla scheda qui sopra per continuare."
+    },
+    "rail": {
+      "show": "Mostra {label}",
+      "hide": "Nascondi {label}",
+      "resize": "Ridimensiona {label}",
+      "expand": "Espandi {label}",
+      "restore": "Ripristina {label}"
     }
   },
   "copilot": {

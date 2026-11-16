@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useCopilotAction } from "@copilotkit/react-core";
+import {
+  defineTool,
+  parseResult,
+  useAgentTool,
+  type AgentRenderers,
+  type ToolRendererProps,
+} from "@calliopelabs/ui/agent";
 import { COPILOT_TOOL_CONFIRM_TRANSITION, COPILOT_TOOL_DRAFT_FORM } from "./config";
 import { FormDraftCard, type DraftField } from "./FormDraftCard";
 import { FormDraftErrorCard } from "./FormDraftErrorCard";
@@ -74,15 +80,20 @@ function WorkflowTransitionHITL({
   fromState,
   toState,
   respond,
+  answered,
 }: {
   workflow?: string;
   fromState?: string;
   toState?: string;
   respond?: (result: unknown) => void;
+  /** How the call was answered, once it has a result. */
+  answered?: boolean;
 }) {
   const [decision, setDecision] = useState<null | "approved" | "denied">(null);
 
-  const status: WorkflowApprovalStatus = decision ?? (respond ? "pending" : "waiting");
+  const status: WorkflowApprovalStatus =
+    decision ??
+    (answered === undefined ? (respond ? "pending" : "waiting") : answered ? "approved" : "denied");
 
   return (
     <WorkflowTransitionApproval
@@ -102,103 +113,103 @@ function WorkflowTransitionHITL({
   );
 }
 
+/** What the agent passes when it asks for a transition's approval. */
+export interface ConfirmTransitionArgs {
+  instance_ref: string;
+  workflow_name?: string;
+  from_state_label?: string;
+  to_state_label?: string;
+  label?: string;
+  message?: string;
+}
+
 /**
- * Registers CopilotKit renders for the agent's tool calls. Renders nothing
- * itself — the output is injected into the chat stream by CopilotKit. Must be
- * mounted inside `<CopilotKit>`.
+ * Human-in-the-loop: a genuine FRONTEND tool the agent calls to obtain human
+ * approval BEFORE it executes the (backend-only) workflow transition. It has a
+ * card and no handler, so the run waits until the card calls `respond`, which
+ * resumes the agent with `{ approved }` and drives its confirmed=true re-call.
  */
-export function CopilotToolRenders() {
-  // Generative UI: display the drafted form definition. `available: "disabled"`
-  // keeps this render-only AND keeps the name out of the advertised frontend tool
-  // list, so it never collides with the identically-named backend tool.
-  useCopilotAction({
-    name: COPILOT_TOOL_DRAFT_FORM,
-    available: "disabled",
-    render: ({ status, args, result }) => {
-      const draft = draftFromArgs(toRecord(args) ?? {});
-
-      // Still streaming the tool call — show the draft taking shape.
-      if (status !== "complete") {
-        return <FormDraftCard {...draft} editHref="/forms/new" drafting />;
-      }
-
-      // Completed. The backend returns either { status: 'created', slug, version,
-      // name, form_status } or a failure ({ status: permission_denied |
-      // invalid_schema | error, message?/errors? }).
-      const res = toRecord(result) ?? {};
-      if (str(res.status) !== "created") {
-        return <FormDraftErrorCard message={str(res.message)} errors={strList(res.errors)} />;
-      }
-
-      const slug = str(res.slug);
-      return (
-        <FormDraftCard
-          name={str(res.name) ?? draft.name}
-          description={draft.description}
-          fields={draft.fields}
-          slug={slug}
-          version={num(res.version)}
-          editHref={slug ? `/forms/${slug}` : "/forms/new"}
-        />
-      );
-    },
-  });
-
-  // Human-in-the-loop: a genuine FRONTEND tool the agent calls to obtain human
-  // approval BEFORE it executes the (backend-only) workflow transition. `respond`
-  // resumes the agent with `{ approved }`, which drives its confirmed=true re-call.
-  useCopilotAction({
-    name: COPILOT_TOOL_CONFIRM_TRANSITION,
-    description:
-      "Ask the human to approve or deny a workflow transition before executing it; returns {approved}.",
-    parameters: [
-      {
-        name: "instance_ref",
+export const confirmTransitionTool = defineTool<ConfirmTransitionArgs>({
+  name: COPILOT_TOOL_CONFIRM_TRANSITION,
+  description:
+    "Ask the human to approve or deny a workflow transition before executing it; returns {approved}.",
+  parameters: {
+    type: "object",
+    properties: {
+      instance_ref: {
         type: "string",
-        required: true,
         description:
           "Reference id of the workflow instance being transitioned (from the confirmation_required payload).",
       },
-      {
-        name: "workflow_name",
+      workflow_name: { type: "string", description: "Human-readable name of the workflow." },
+      from_state_label: {
         type: "string",
-        required: false,
-        description: "Human-readable name of the workflow.",
-      },
-      {
-        name: "from_state_label",
-        type: "string",
-        required: false,
         description: "Human-readable label of the current state.",
       },
-      {
-        name: "to_state_label",
-        type: "string",
-        required: false,
-        description: "Human-readable label of the target state.",
-      },
-      {
-        name: "label",
-        type: "string",
-        required: false,
-        description: "Label of the transition being applied.",
-      },
-      {
-        name: "message",
-        type: "string",
-        required: false,
-        description: "Optional additional context to show the human.",
-      },
-    ],
-    renderAndWaitForResponse: ({ args, respond }) => (
+      to_state_label: { type: "string", description: "Human-readable label of the target state." },
+      label: { type: "string", description: "Label of the transition being applied." },
+      message: { type: "string", description: "Optional additional context to show the human." },
+    },
+    required: ["instance_ref"],
+  },
+  render: ({ call, args, respond }) => {
+    const result = toRecord(parseResult(call));
+    return (
       <WorkflowTransitionHITL
-        workflow={args.workflow_name}
-        fromState={args.from_state_label}
-        toState={args.to_state_label}
+        workflow={args?.workflow_name}
+        fromState={args?.from_state_label}
+        toState={args?.to_state_label}
         respond={respond}
+        answered={result && typeof result.approved === "boolean" ? result.approved : undefined}
       />
-    ),
-  });
+    );
+  },
+});
 
+/**
+ * Generative UI: the drafted form definition, drawn from the backend tool's
+ * call. It is a renderer, not a tool, so its name never reaches the frontend
+ * tool list and never collides with the identically-named backend tool.
+ */
+export function DraftFormRender({ call, args, result }: ToolRendererProps) {
+  const draft = draftFromArgs(toRecord(args) ?? {});
+
+  // Still streaming the tool call — show the draft taking shape.
+  if (call.status !== "complete") {
+    return <FormDraftCard {...draft} editHref="/forms/new" drafting />;
+  }
+
+  // Completed. The backend returns either { status: 'created', slug, version,
+  // name, form_status } or a failure ({ status: permission_denied |
+  // invalid_schema | error, message?/errors? }).
+  const res = toRecord(result) ?? {};
+  if (str(res.status) !== "created") {
+    return <FormDraftErrorCard message={str(res.message)} errors={strList(res.errors)} />;
+  }
+
+  const slug = str(res.slug);
+  return (
+    <FormDraftCard
+      name={str(res.name) ?? draft.name}
+      description={draft.description}
+      fields={draft.fields}
+      slug={slug}
+      version={num(res.version)}
+      editHref={slug ? `/forms/${slug}` : "/forms/new"}
+    />
+  );
+}
+
+/** The assistant's renderers for the backend's tool calls. */
+export const copilotRenderers: AgentRenderers = {
+  tools: { [COPILOT_TOOL_DRAFT_FORM]: DraftFormRender },
+};
+
+/**
+ * Offers the browser's tools to the agent while mounted. Renders nothing
+ * itself; must be mounted inside the agent provider.
+ */
+export function CopilotToolRenders() {
+  useAgentTool(confirmTransitionTool);
   return null;
 }

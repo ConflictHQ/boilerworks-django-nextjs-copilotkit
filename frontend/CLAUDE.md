@@ -607,32 +607,35 @@ Both client patterns show a spinner while loading, call `notFound()` if `compone
 
 ---
 
-## Copilot (CopilotKit)
+## Copilot (CalliopeAgent over CopilotKit)
 
 All copilot code lives in `copilot/` (plus the `app/api/copilotkit/route.ts` bridge) — it is
-deliberately isolated so it ports to other templates.
+deliberately isolated so it ports to other templates. CopilotKit's headless core (1.79,
+runtime v2) runs the agent; `@calliopelabs/ui/agent` draws every pixel (`CalliopeAgent` in
+the shell's right rail). CopilotKit's UI and stylesheet are not used.
 
 - `config.ts` — agent name, runtime URL, feature flag, and the `COPILOT_TOOL_*` constants.
   Two kinds, do not mix them up: `COPILOT_TOOL_DRAFT_FORM` is a **backend** tool name rendered
-  render-only (`available: "disabled"` keeps it out of the advertised frontend tools — that flag
-  is what prevents a duplicate-name collision); `COPILOT_TOOL_CONFIRM_TRANSITION`
+  render-only (a `renderers.tools` entry, not a tool, so it is never advertised as a frontend
+  tool — that is what prevents a duplicate-name collision); `COPILOT_TOOL_CONFIRM_TRANSITION`
   (`confirm_workflow_transition`) is a genuine **frontend** tool the agent calls for HITL
   approval, so its name must NOT match any backend tool (pydantic-ai hard-errors on duplicates)
 - `agui-endpoint.ts` — server-only helpers: backend URL resolution (throws when neither
   `NEXT_PUBLIC_API_ROOT` nor `COPILOT_AGUI_URL` is set) and forwarded headers
   (`Authorization` from the `backend_jwt` cookie authenticates the server hop, like Apollo)
-- `CopilotProvider.tsx` — provider + sidebar; gated on `NEXT_PUBLIC_COPILOT_ENABLED` and
-  authentication; optional `NEXT_PUBLIC_COPILOTKIT_API_KEY` enables Copilot Cloud extras
-- `CopilotToolRenders.tsx` — `useCopilotAction` registrations: render-only generative UI for
-  form drafts (success card from args + result, `FormDraftErrorCard` for
-  permission_denied/invalid_schema/error results) and the `confirm_workflow_transition`
-  `renderAndWaitForResponse` approve/deny flow (`respond({ approved: true|false })`)
-- `copilot.css` — maps `--copilot-kit-*` vars onto the app's shadcn tokens (light + dark)
+- `CopilotProvider.tsx` — `CopilotKitAgentProvider` (single-route runtime, agent
+  `boilerworks_agent`) and `useCopilotRail()`, the `CalliopeAgent mode="rail"` for the shell;
+  gated on `NEXT_PUBLIC_COPILOT_ENABLED` and authentication
+- `CopilotToolRenders.tsx` — `copilotRenderers` (render-only generative UI for form drafts:
+  success card from args + result, `FormDraftErrorCard` for permission_denied/invalid_schema/
+  error results) and the `confirm_workflow_transition` HITL tool (`useAgentTool` with a card
+  and no handler; the card calls `respond({ approved: true|false })`)
+- `DashboardCopilotContext.tsx` — page context through `useAgentReadable`
 - User-facing strings go through the `copilot` namespace in `messages/*.json` (all locales)
 
 Adding a render for a new backend tool: add the name constant to `config.ts` (matching
-`backend/copilot/agent.py` exactly), register a render-only `useCopilotAction`
-(`available: "disabled"`) in `CopilotToolRenders.tsx`, and test both states like
+`backend/copilot/agent.py` exactly), add its component to `copilotRenderers.tools` in
+`CopilotToolRenders.tsx`, and test both states like
 `__tests__/copilot-generative-ui.test.tsx` does. Only HITL prompts get real frontend tools —
 and those need collision-free names.
 

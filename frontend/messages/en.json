@@ -232,6 +232,65 @@
       "customAccentOk": "{ratio}:1 against this ground.",
       "customAccentFaintLighter": "{ratio}:1 against this ground; it needs {min}:1. Try a lighter colour.",
       "customAccentFaintDarker": "{ratio}:1 against this ground; it needs {min}:1. Try a darker colour."
+    },
+    "chat": {
+      "conversation": "Conversation",
+      "roles": {
+        "user": "You",
+        "assistant": "Assistant",
+        "system": "System",
+        "developer": "Developer",
+        "tool": "Tool"
+      },
+      "messageFrom": "Message from {speaker}",
+      "thinking": "Thinking",
+      "writing": "Still writing",
+      "jumpToLatest": "Jump to latest",
+      "runFailed": "The run failed",
+      "retry": "Retry",
+      "composer": "Message",
+      "composerHint": "Enter to send, Shift+Enter for a new line.",
+      "send": "Send",
+      "stop": "Stop",
+      "toolCall": "Tool call {name}",
+      "toolStatus": {
+        "streaming": "preparing",
+        "running": "running",
+        "complete": "done",
+        "failed": "failed",
+        "cancelled": "cancelled",
+        "approval": "needs approval"
+      },
+      "details": "Details",
+      "arguments": "Arguments",
+      "noArguments": "No arguments",
+      "result": "Result",
+      "toolError": "Error",
+      "runStatus": {
+        "idle": "idle",
+        "running": "running",
+        "finished": "finished",
+        "interrupted": "waiting for you",
+        "cancelled": "stopped",
+        "error": "failed"
+      }
+    },
+    "agent": {
+      "open": "Open {title}",
+      "close": "Close",
+      "unread": "{count} unread",
+      "newConversation": "New conversation",
+      "shortcut": "Shortcut {keys}",
+      "expand": "Expand",
+      "restore": "Restore",
+      "waitingOnYou": "Answer the card above to continue."
+    },
+    "rail": {
+      "show": "Show {label}",
+      "hide": "Hide {label}",
+      "resize": "Resize {label}",
+      "expand": "Expand {label}",
+      "restore": "Restore {label}"
     }
   },
   "copilot": {

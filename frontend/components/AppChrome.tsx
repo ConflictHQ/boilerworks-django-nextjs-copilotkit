@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { AccountDrawer, NotificationsDrawer } from "@/components/UserDrawers";
+import { useCopilotRail } from "@/copilot/CopilotProvider";
 import { useMe } from "@/graphql/user/user.hooks";
 import type { CurrentUser } from "@/graphql/user/user.types";
 import { clearToken } from "@/lib/auth/token-store";
@@ -50,6 +51,7 @@ export function AppChrome({
   };
 
   const me = user ?? ssrUser;
+  const assistant = useCopilotRail();
 
   return (
     <>
@@ -70,6 +72,7 @@ export function AppChrome({
         ]}
         onSignOut={signOut}
         pageLabel={(segment) => routeLabels[segment] ?? segment}
+        {...assistant}
       >
         {children}
       </AppFrame>
