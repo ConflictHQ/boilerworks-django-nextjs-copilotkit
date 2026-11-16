@@ -57,7 +57,7 @@ django-ratelimit = "*"
 strawberry-graphql = {extras = ["django"], version = ">=0.235.0"}
 strawberry-graphql-django = ">=0.47.0"
 jsonschema = "*"
-pydantic-ai-slim = {extras = ["anthropic", "ag-ui"], version = "==2.12.0"} # copilot: Pydantic AI agent served over AG-UI
+pydantic-ai-slim = {extras = ["anthropic", "ag-ui"], version = "==2.68.0"} # copilot: Pydantic AI agent served over AG-UI
 
 [dev-packages]
 django-debug-toolbar = "*"
