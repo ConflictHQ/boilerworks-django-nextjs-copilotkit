@@ -194,7 +194,7 @@ input FormDefinitionInput {
   name: String!
   slug: String!
   description: String! = ""
-  schema: JSON! = {  }
+  schema: JSON! = {}
 }
 
 type FormDefinitionType {
