@@ -43,3 +43,6 @@ next-env.d.ts
 
 # Ship the env documentation (values are placeholders); .env* above stays ignored
 !.env.example
+# Storybook build output
+storybook-static/
+debug-storybook.log
